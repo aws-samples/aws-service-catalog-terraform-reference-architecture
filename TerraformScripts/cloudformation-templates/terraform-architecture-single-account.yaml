@@ -1,0 +1,212 @@
+Metadata:
+   License: Apache-2.0
+Description:
+  "This template launches and configures all of the terraform reference architecture’s resources
+   without the need for manual intervention.
+
+  This template generates a TerraformLaunchLambda, TerraformLaunchRole and TerraformResourceCreationRole
+  roles, and a TerraformLaunchGroup to provision Terraform products.
+
+  This template also generates an AutoScalingGroup with a Terraform Wrapper Server instance
+  that is configured to receive and execute Terraform commands. (fdp-1pahse215)"
+
+Parameters:
+  Vpc:
+    Type: String
+    Default: ""
+    Description: (Optional) The VPC to use for the TerraformWrapperServer. A VPC will be
+                 created if this parameter is left empty.
+  Subnet:
+    Type: String
+    Default: ""
+    Description: (Optional) The subnet to use for the TerraformWrapperServer. A subnet will be
+                 created if this parameter is left empty.
+  UsePrivateSubnet:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Create a private subnet for the TerraformWrapperServer to prevent the internet
+                 from initiating connections to the instances. This parameter is ignored if the Vpc
+                 parameter is non-empty.
+  UseDedicatedInstance:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: Use a dedicated instance for the TerraformWrapperServer. Dedicated instance is more secure, but has added cost.
+  SshAccessKeyName:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the EC2 key pair to use for authorizing access to the
+                 Terraform Wrapper Server.
+  SshInboundIpRange:
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: 'must be a valid IP CIDR range of the form x.x.x.x/x.'
+    Description : (Optional) The IP address range that can be used to SSH to the
+                  TerraformWrapperServer
+  ConfigBucketName:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of bucket used to store Terraform configurations. The default
+                 name is "terraform-config-<AccountId>""
+  BucketEncryptionKeyId:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the KMS key to use for the ServerSideEncryption of
+                 Terraform-related S3 buckets. By default an S3 managed key is used.
+  TerraformVersion:
+    Type: String
+    Default: ""
+    Description: (Optional) The version of the terraform binary to use (ex. 0.11.3). By default,
+                 the latest version will be used.
+  WrapperScriptBucket:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the S3 bucket containing the script that will be used by the
+                 Terraform Wrapper Server to download Terraform configurations and apply tags to
+                 resources. Defaults to the S3 location of the reference implementation provided by
+                 Service Catalog.
+  WrapperScriptKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The key of the S3 object containing the script that will be used by the
+                 Terraform Wrapper Server to download Terraform configurations and apply tags to
+                 resources. Defaults to the S3 location of the reference implementation provided by
+                 Service Catalog.
+  LambdaJarBucket:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the S3 bucket containing the code for the terraform command
+                 handler lambda function that sends commands to the TerraformWrapperServer. Defaults
+                 to the S3 location of the reference implementation provided by Service Catalog.
+  LambdaJarKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The key of the S3 object containing the code for the terraform command
+                 handler lambda function that sends commands to the TerraformWrapperServer. Defaults
+                 to the S3 location of the reference implementation provided by Service Catalog.
+  SshIdentitySecret:
+    Type: String
+    Default: ""
+    Description: (Optional) The Id of the SecretString containing the private RSA key that should
+                 be used for the Terraform Wrapper Server's SSH identity file. For details about how
+                 to generate a SecretString, see 
+                 https://docs.aws.amazon.com/secretsmanager/latest/userguide/tutorials_basic.html
+  SshKnownHostsSecret:
+    Type: String
+    Default: ""
+    Description: (Optional) The Id of the SecretString containing the hashed known_hosts file that
+                 should be used by the TerraformWrapperServer. For details about how to generate
+                 a SecretString, see 
+                 https://docs.aws.amazon.com/secretsmanager/latest/userguide/tutorials_basic.html
+  SshSecretEncryptionKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The Id of the customer master key used to encrypt your SshIdentitySecret
+                 and SshKnownHostsSecret. If your account's default encryption key was used, this
+                 parameter should not be specified.
+  WrapperServerCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 20
+    Description: (Optional) The number of wrapper server instances to create.
+  TerraformFulfillmentServerTemplateUrl:
+    Type: String
+    Default: ''
+    Description: (Optional) The URL of a template that specifies the terraform-fulfillment-server.yaml
+                 template that generates an AutoScalingGroup with a Terraform Wrapper Server instance
+                 that is configured to receive and execute Terraform commands. Defaults to the S3 
+                 location of the reference implementation provided by Service Catalog.
+  TerraformSpokePrincipalsTemplateUrl:
+    Type: String
+    Default: ''
+    Description: (Optional) The URL of a template that specifies the terraform-spoke-principals.yaml
+                 template that generates TerraformLaunchRole and TerraformResourceCreationRole roles,
+                 and a TerraformLaunchGroup to provision Terraform products. Defaults to the S3 
+                 location of the reference implementation provided by Service Catalog.
+  TerraformLaunchLambdaTemplateUrl:
+    Type: String
+    Default: ''
+    Description: (Optional) The URL of a template that specifies the terraform-launch-lambda.yaml
+                 template that generates a TerraformLaunchLambda is used to append send commands to
+                 the fulfillment hub account. Defaults to the S3 location of the reference
+                 implementation provided by Service Catalog.
+
+Conditions:
+  defaultffurl: !Equals [!Ref TerraformFulfillmentServerTemplateUrl, ""]
+  defaultspurl: !Equals [!Ref TerraformSpokePrincipalsTemplateUrl, ""]
+  defaultllurl: !Equals [!Ref TerraformLaunchLambdaTemplateUrl, ""]
+                 
+Resources:
+  TerraformFulfillmentServer:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      Parameters:
+        Vpc: !Ref Vpc
+        Subnet: !Ref Subnet
+        UsePrivateSubnet: !Ref UsePrivateSubnet
+        UseDedicatedInstance: !Ref UseDedicatedInstance
+        SshAccessKeyName: !Ref SshAccessKeyName
+        SshInboundIpRange: !Ref SshInboundIpRange
+        ConfigBucketName: !Ref ConfigBucketName
+        BucketEncryptionKeyId: !Ref BucketEncryptionKeyId
+        TerraformVersion: !Ref TerraformVersion
+        WrapperScriptBucket: !Ref WrapperScriptBucket
+        WrapperScriptKey: !Ref WrapperScriptKey
+        LambdaJarBucket: !Ref LambdaJarBucket
+        LambdaJarKey: !Ref LambdaJarKey
+        SshIdentitySecret: !Ref SshIdentitySecret
+        SshKnownHostsSecret: !Ref SshKnownHostsSecret
+        SshSecretEncryptionKey: !Ref SshSecretEncryptionKey
+        WrapperServerCount: !Ref WrapperServerCount
+      TemplateURL: !If
+        - defaultffurl
+        - !Sub "https://s3.amazonaws.com/scterraform-${AWS::AccountId}/TerraformScripts/cloudformation-templates/terraform-fulfillment-server.yaml"
+        - !Ref TerraformFulfillmentServerTemplateUrl
+        
+  TerraformSpokePrincipals:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: TerraformFulfillmentServer
+    Properties:
+      Parameters:
+        FulfillmentHubAccountId: !Ref AWS::AccountId
+        FulfillmentRegion: !Ref AWS::Region
+      TemplateURL: !If
+        - defaultspurl
+        - !Sub "https://s3.amazonaws.com/scterraform-${AWS::AccountId}/TerraformScripts/cloudformation-templates/terraform-spoke-principals.yaml"
+        - !Ref TerraformSpokePrincipalsTemplateUrl
+
+  TerraformLaunchLambda:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [TerraformFulfillmentServer,TerraformSpokePrincipals]
+    Properties:
+      Parameters:
+        FulfillmentHubAccountId: !Ref AWS::AccountId
+        LambdaJarBucket: !Ref LambdaJarBucket
+        LambdaJarKey: !Ref LambdaJarKey
+        FulfillmentRegion: !Ref AWS::Region
+      TemplateURL: !If
+        - defaultllurl
+        - !Sub "https://s3.amazonaws.com/scterraform-${AWS::AccountId}/TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml"
+        - !Ref TerraformLaunchLambdaTemplateUrl
+
+  TerraformSNSPolicy:
+    Type: AWS::SNS::TopicPolicy
+    DependsOn: [TerraformFulfillmentServer,TerraformSpokePrincipals,TerraformLaunchLambda]
+    Properties:
+      Topics: 
+        - !GetAtt TerraformFulfillmentServer.Outputs.TerraformLambdaSnsTopic
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: '__default_policy_ID'
+        Statement:
+          - Sid: TerraformCommandStatement
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt TerraformSpokePrincipals.Outputs.TerraformLaunchLambdaRoleArn
+            Action: 'SNS:Publish'
+            Resource: !GetAtt TerraformFulfillmentServer.Outputs.TerraformLambdaSnsTopic

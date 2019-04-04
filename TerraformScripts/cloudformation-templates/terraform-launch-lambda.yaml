@@ -1,0 +1,60 @@
+Metadata:
+   License: Apache-2.0
+Description:
+  "This template generates a TerraformLaunchLambda. The TerraformLaunchLambda is used to append
+  send commands to the fulfillment hub account. Terraform wrapper templates should use this Lambda
+  function's ARN for their custom resource's ServiceToken property. (fdp-1paht0f76)"
+
+
+Parameters:
+  FulfillmentHubAccountId:
+    Type: String
+    Description: The 12 digit ID of the fulfillment hub account containing the
+                 TerraformWrapperServer that will be used to apply Terraform configurations.
+    AllowedPattern: "^[0-9]{12}$"
+  LambdaJarBucket:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the S3 bucket containing the code for the terraform command
+                 handler lambda function that sends commands to the TerraformWrapperServer. Defaults
+                 to the S3 location of the reference implementation provided by Service Catalog.
+  LambdaJarKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The key of the S3 object containing the code for the terraform command
+                 handler lambda function that sends commands to the TerraformWrapperServer. Defaults
+                 to the S3 location of the reference implementation provided by Service Catalog.
+  FulfillmentRegion:
+    Type: String
+    Default: 'us-east-1'
+    Description: (Optional) The region containing the terraform fulfillment server. Defaults to `us-east-1` of
+                 the reference implementation provided by Service Catalog.
+
+Conditions:
+  UseDefaultJar: !And
+    - !Equals [!Ref LambdaJarBucket, ""]
+    - !Equals [!Ref LambdaJarKey, ""]
+
+Resources:
+  TerraformLaunchLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If
+          - UseDefaultJar
+          - !Sub "scterraform-${AWS::AccountId}"
+          - !Ref LambdaJarBucket
+        S3Key: !If
+          - UseDefaultJar
+          - !Sub "TerraformCustomResourceHandler/bin/aws-servicecatalog-terraform-wrapper.jar"
+          - !Ref LambdaJarKey
+      Environment:
+        Variables:
+          HUB_SNS_TOPIC_ARN: !Sub arn:aws:sns:${FulfillmentRegion}:${FulfillmentHubAccountId}:terraform-commands-topic
+      FunctionName: TerraformLaunchHandler
+      Handler: com.amazon.servicecatalog.terraform.customresource.TerraformLaunchRequestHandler
+      MemorySize: 512
+      ReservedConcurrentExecutions: 50
+      Role: !Sub arn:aws:iam::${AWS::AccountId}:role/TerraformLaunchLambdaRole
+      Runtime: java8
+      Timeout: 300

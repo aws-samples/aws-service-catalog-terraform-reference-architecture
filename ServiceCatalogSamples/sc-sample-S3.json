@@ -1,0 +1,57 @@
+{
+    "Parameters": {
+
+        "BucketName": {
+            "Type": "String",
+            "Description":"Bucket Name",
+            "Default":"bucketname"
+            
+        } 
+         
+
+
+    },
+    "Resources": {
+        "MyTerraformStack": {
+            "Type": "Custom::TerraformStack",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:TerraformLaunchHandler"
+                },
+                "TerraformArtifactUrl": {
+                    "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-S3.tf"
+                },
+                "LaunchRoleArn": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole"
+                },
+                "TerraformVariables": {
+                    "aws_region": {
+                        "Fn::Sub": "${AWS::Region}"
+                    },
+                    "bucket_name": {
+                        "Ref": "BucketName"
+                    } 
+
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "ScriptOutput": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "MyTerraformStack",
+                    "TerraformScriptOutputLocation"
+                ]
+            }
+        },
+        "MyOutputVariables": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "MyTerraformStack",
+                    "Outputs"
+                ]
+            }
+        }
+    }
+}

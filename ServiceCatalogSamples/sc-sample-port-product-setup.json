@@ -1,0 +1,151 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS SC Multiple SC products and portfolios",
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Portfolio Information"
+          },
+          "Parameters": [
+            "DisplayName",
+            "PortfolioDescription",
+            "ProviderName"
+          ]
+        }
+      ]
+    }
+  },
+  "Parameters": {
+    "ProviderName": {
+      "Type": "String",
+      "Description": "Portfolio ProviderName",
+      "Default": "AWS Samples"
+    },
+    "PortfolioDescription": {
+      "Type": "String",
+      "Description": "AWS SC Sample TF Portfolio",
+      "Default": "AWS SC Sample TF Portfolio. Two Products included Lamp and S3"
+    },
+    "DisplayName": {
+      "Type": "String",
+      "Description": "Portfolio Name",
+      "Default": "SC Sample TF Portfolio"
+    }
+  },
+  "Resources": {
+    "ProdAsssS3": {
+      "Type": "AWS::ServiceCatalog::PortfolioProductAssociation",
+      "DependsOn": [
+        "SCsampleport",
+        "SCsmpleproductLamp"
+      ],
+      "Properties": {
+        "AcceptLanguage": "en",
+        "PortfolioId": {
+          "Ref": "SCsampleport"
+        },
+        "ProductId": {
+          "Ref": "SCsmpleproductS3"
+        }
+      }
+    },
+    "ProdAsss": {
+      "Type": "AWS::ServiceCatalog::PortfolioProductAssociation",
+      "DependsOn": [
+        "SCsampleport",
+        "SCsmpleproductLamp"
+      ],
+      "Properties": {
+        "AcceptLanguage": "en",
+        "PortfolioId": {
+          "Ref": "SCsampleport"
+        },
+        "ProductId": {
+          "Ref": "SCsmpleproductLamp"
+        }
+      }
+    },
+    "SCsmpleproductLamp": {
+      "Type": "AWS::ServiceCatalog::CloudFormationProduct",
+      "Properties": {
+        "Owner": "MP Team",
+        "SupportDescription": "Support Description",
+        "Description":"Lamp Stack-TF",
+        "Distributor": "AWS MP Team Sample",
+        "SupportEmail": "awsmp@example.com",
+        "AcceptLanguage": "en",
+        "SupportUrl": "https://support.com",
+        "Name": "Lamp-TF",
+        "ProvisioningArtifactParameters": [
+          {
+            "Description": "Lamp TF V1",
+            "Info": {
+              "LoadTemplateFromURL": {
+                "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-lamp.json"
+              }
+            },
+            "Name": "V1"
+          }
+        ]
+      }
+    },
+    "SCsmpleproductS3": {
+      "Type": "AWS::ServiceCatalog::CloudFormationProduct",
+      "Properties": {
+        "Owner": "MP Team",
+        "SupportDescription": "Support Description",
+        "Description": "S3 WebSite-TF",
+        "Distributor": "AWS MP Team Sample",
+        "SupportEmail": "awsmp@example.com",
+        "AcceptLanguage": "en",
+        "SupportUrl": "https://support.com",
+        "Name": "S3 WebSite-TF",
+        "ProvisioningArtifactParameters": [
+          {
+            "Description": "S3 WebSite-TF",
+            "Info": {
+              "LoadTemplateFromURL": {
+                "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-S3.json"
+              }
+            },
+            "Name": "V1"
+          }
+        ]
+      }
+    },
+    "SCsampleport": {
+      "Type": "AWS::ServiceCatalog::Portfolio",
+      "Properties": {
+        "ProviderName": {
+          "Ref": "ProviderName"
+        },
+        "Description": {
+          "Ref": "PortfolioDescription"
+        },
+        "DisplayName": {
+          "Ref": "DisplayName"
+        },
+        "AcceptLanguage": "en"
+      }
+    }
+  },
+  "Outputs": {
+    "ServiceCatalogUrl": {
+      "Description": "Service Catalog URL",
+      "Value": {
+        "Fn::Sub": "https://console.aws.amazon.com/servicecatalog/home"
+      }
+    },
+       "NewPortFolio": {
+      "Description": "Service Catalog Portfolio URL",
+      "Value": {
+        "Fn::Sub": "https://console.aws.amazon.com/servicecatalog/home?region=${AWS::Region}#/portfolio/details?portfolioId=${SCsampleport}"}
+      }
+    }
+
+   
+  }
+
+}

@@ -1,0 +1,807 @@
+Metadata:
+   License: Apache-2.0
+Description:
+  "This template generates an AutoScalingGroup with a Terraform Wrapper Server instance
+  that is configured to receive and execute Terraform commands. (fdp-1pahsr79m)"
+
+Parameters:
+  Vpc:
+    Type: String
+    Default: ""
+    Description: (Optional) The VPC to use for the TerraformWrapperServer. A VPC will be
+                 created if this parameter is left empty.
+  Subnet:
+    Type: String
+    Default: ""
+    Description: (Optional) The subnet to use for the TerraformWrapperServer. A subnet will be
+                 created if this parameter is left empty.
+  UsePrivateSubnet:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Create a private subnet for the TerraformWrapperServer to prevent the internet
+                 from initiating connections to the instances. This parameter is ignored if the Vpc
+                 parameter is non-empty.
+  UseDedicatedInstance:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "false"
+    Description: Use a dedicated instance for the TerraformWrapperServer. This is safer, but has added cost.
+  SshAccessKeyName:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the EC2 key pair to use for authorizing access to the
+                 Terraform Wrapper Server.
+  SshInboundIpRange:
+    Type: String
+    MinLength: 9
+    MaxLength: 18
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: 'must be a valid IP CIDR range of the form x.x.x.x/x.'
+    Description : (Optional) The IP address range that can be used to SSH to the
+                  TerraformWrapperServer
+  ConfigBucketName:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of bucket used to store Terraform configurations. The default
+                 name is "terraform-config-<AccountId>""
+  BucketEncryptionKeyId:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the KMS key to use for the ServerSideEncryption of
+                 Terraform-related S3 buckets. By default an S3 managed key is used.
+  TerraformVersion:
+    Type: String
+    Default: ""
+    Description: (Optional) The version of the terraform binary to use (ex. 0.11.3). By default,
+                 the latest version will be used.
+  WrapperScriptBucket:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the S3 bucket containing the script that will be used by the
+                 Terraform Wrapper Server to download Terraform configurations and apply tags to
+                 resources. Defaults to the S3 location of the reference implementation provided by
+                 Service Catalog.
+  WrapperScriptKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The key of the S3 object containing the script that will be used by the
+                 Terraform Wrapper Server to download Terraform configurations and apply tags to
+                 resources. Defaults to the S3 location of the reference implementation provided by
+                 Service Catalog.
+  LambdaJarBucket:
+    Type: String
+    Default: ""
+    Description: (Optional) The name of the S3 bucket containing the code for the terraform command
+                 handler lambda function that sends commands to the TerraformWrapperServer. Defaults
+                 to the S3 location of the reference implementation provided by Service Catalog.
+  LambdaJarKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The key of the S3 object containing the code for the terraform command
+                 handler lambda function that sends commands to the TerraformWrapperServer. Defaults
+                 to the S3 location of the reference implementation provided by Service Catalog.
+  SshIdentitySecret:
+    Type: String
+    Default: ""
+    Description: (Optional) The Id of the SecretString containing the private RSA key that should
+                 be used for the Terraform Wrapper Server's SSH identity file. For details about how
+                 to generate a SecretString, see 
+                 https://docs.aws.amazon.com/secretsmanager/latest/userguide/tutorials_basic.html
+  SshKnownHostsSecret:
+    Type: String
+    Default: ""
+    Description: (Optional) The Id of the SecretString containing the hashed known_hosts file that
+                 should be used by the TerraformWrapperServer. For details about how to generate
+                 a SecretString, see 
+                 https://docs.aws.amazon.com/secretsmanager/latest/userguide/tutorials_basic.html
+  SshSecretEncryptionKey:
+    Type: String
+    Default: ""
+    Description: (Optional) The Id of the customer master key used to encrypt your SshIdentitySecret
+                 and SshKnownHostsSecret. If your account's default encryption key was used, this
+                 parameter should not be specified.
+  WrapperServerCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 20
+    Description: (Optional) The number of wrapper server instances to create.
+  ServerLatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+
+Rules:
+  SubnetRule:
+    RuleCondition: !Or
+      - !Equals [!Ref Subnet, ""]
+      - !Equals [!Ref Vpc, ""]
+    Assertions:
+      - Assert: !Equals [!Ref Subnet, !Ref Vpc]
+        AssertDescription: The Subnet parameter is empty if and only if the Vpc parameter is empty
+
+Conditions:
+  UseDefaultConfigBucketName: !Equals [!Ref ConfigBucketName, ""]
+  EnableSshAccess: !Not [!Equals [!Ref SshAccessKeyName, ""]]
+  CreateDedicatedInstance: !Equals [!Ref UseDedicatedInstance, "true"]
+  CreateVpc: !Equals [!Ref Vpc, ""]
+  CreatePrivateSubnet:  !And
+    - !Equals [!Ref UsePrivateSubnet, "true"]
+    - Condition: CreateVpc
+  UseS3ManagedEncryptionKey: !Equals [!Ref BucketEncryptionKeyId, ""]
+  UseDefaultWrapperScript: !And
+    - !Equals [!Ref WrapperScriptBucket, ""]
+    - !Equals [!Ref WrapperScriptKey, ""]
+  UseDefaultJar: !And
+    - !Equals [!Ref LambdaJarBucket, ""]
+    - !Equals [!Ref LambdaJarKey, ""]
+  CreateSshIdentity: !And
+    - !Not [!Equals [!Ref SshIdentitySecret, ""]]
+    - !Not [!Equals [!Ref SshKnownHostsSecret, ""]]
+  UseCustomSecretEncryptionKey: !Not [!Equals [!Ref SshSecretEncryptionKey, ""]]
+
+Resources:
+  ############
+  # S3 Buckets
+  ############
+  StateStore:
+    # Bucket for Terraform state files
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: !If [UseS3ManagedEncryptionKey, 'AES256', 'aws:kms']
+              KMSMasterKeyID: !If
+                - UseS3ManagedEncryptionKey
+                - !Ref AWS::NoValue
+                - !Ref BucketEncryptionKeyId
+  StateStorePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StateStore
+      PolicyDocument:
+        Statement:
+          - Effect: Deny
+            Action: s3:*
+            Principal: '*'
+            Resource: !Sub '${StateStore.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+
+  OutputStore:
+    # Bucket for storing the output of Terraform commands
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        # Provide a non-existent file for the required IndexDocument field since the index of the S3
+        # static website should never be accessed
+        IndexDocument: 404.html
+      LifecycleConfiguration:
+        Rules:
+          - Id: "Delete in 90 days"
+            ExpirationInDays: 90
+            Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: !If [UseS3ManagedEncryptionKey, 'AES256', 'aws:kms']
+              KMSMasterKeyID: !If
+                - UseS3ManagedEncryptionKey
+                - !Ref AWS::NoValue
+                - !Ref BucketEncryptionKeyId
+  OutputStorePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref OutputStore
+      PolicyDocument:
+        Statement:
+          # Allow HTTP requests for the /redirects path since S3 website endpoints don't support
+          # HTTPS (see https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteEndpoints.html). All
+          # objects within /redirects will be empty objects with Website-Redirect-Location metadata
+          # that references an HTTPS URL.
+          - Effect: Deny
+            Action: s3:*
+            Principal: '*'
+            NotResource: !Sub '${OutputStore.Arn}/redirects/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  SsmCommandStore:
+    # Bucket for storing the IDs of SSM commands
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: "Delete in 90 days"
+            ExpirationInDays: 90
+            Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: !If [UseS3ManagedEncryptionKey, 'AES256', 'aws:kms']
+              KMSMasterKeyID: !If
+                - UseS3ManagedEncryptionKey
+                - !Ref AWS::NoValue
+                - !Ref BucketEncryptionKeyId
+  SsmCommandStorePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SsmCommandStore
+      PolicyDocument:
+        Statement:
+          - Effect: Deny
+            Action: s3:*
+            Principal: '*'
+            Resource: !Sub '${SsmCommandStore.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+
+  TerraformConfigStore:
+    # Bucket for storing Terraform configurations
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !If
+        - UseDefaultConfigBucketName
+        - !Sub "terraform-config-${AWS::AccountId}"
+        - !Ref ConfigBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: !If [UseS3ManagedEncryptionKey, 'AES256', 'aws:kms']
+              KMSMasterKeyID: !If
+                - UseS3ManagedEncryptionKey
+                - !Ref AWS::NoValue
+                - !Ref BucketEncryptionKeyId
+  TerraformConfigStorePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref TerraformConfigStore
+      PolicyDocument:
+        Statement:
+          - Effect: Deny
+            Action: s3:*
+            Principal: '*'
+            Resource: !Sub '${TerraformConfigStore.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+
+  ################################
+  # IAM Roles and InstanceProfiles
+  ################################
+
+  # The role used to send commands from the TerraformLambda to the TerraformWrapperServer
+  TerraformLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "TerraformLambdaRole"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CommandManagementPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:DescribeInstances
+                - ssm:GetCommandInvocation
+              Resource: '*'
+        - PolicyName: SendCommandPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:SendCommand
+                Resource:
+                  - arn:aws:ssm:*::document/AWS-RunShellScript
+                  - !Sub '${OutputStore.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - ssm:SendCommand
+                Resource:
+                  - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+                Condition:
+                  StringLike:
+                    ssm:resourceTag/terraform-server-tag-key : terraform-server-tag-value
+        - PolicyName: BucketAccessPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub '${OutputStore.Arn}/*'
+                  - !Sub '${SsmCommandStore.Arn}/*'
+                  - !GetAtt SsmCommandStore.Arn
+              - !If
+                - UseS3ManagedEncryptionKey
+                - !Ref AWS::NoValue
+                - Effect: Allow
+                  Action:
+                    - kms:Encrypt
+                    - kms:Decrypt
+                    - kms:GenerateDataKey*
+                  Resource:
+                    - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${BucketEncryptionKeyId}
+        - PolicyName: RoleAssumptionPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - sts:AssumeRole
+              Resource: "arn:aws:iam::*:role/TerraformResourceCreation*"
+
+  # The role attached to the TerraformWrapperServer
+  TerraformServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: TerraformServerRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ssm.amazonaws.com
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+         - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      Policies:
+        - !If
+          - CreateSshIdentity
+          - PolicyName: SecretAccessPolicy
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action: secretsmanager:GetSecretValue
+                  Resource:
+                    - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SshIdentitySecret}*
+                    - !Sub arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SshKnownHostsSecret}*
+                  Condition:
+                    ForAnyValue:StringLike:
+                      secretsmanager:VersionStage: AWSCURRENT
+                - !If
+                  - UseCustomSecretEncryptionKey
+                  - Effect: Allow
+                    Action: kms:Decrypt
+                    Resource: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${SshSecretEncryptionKey}
+                  - !Ref AWS::NoValue
+
+          - !Ref AWS::NoValue
+        - PolicyName: BucketAccessPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource:
+                  - !Sub ${TerraformConfigStore.Arn}/*
+                  - !Sub ${StateStore.Arn}/*
+                  - !Sub ${OutputStore.Arn}/*
+                  - !Sub arn:aws:s3:::sc-tf-customresource/*
+              - !If
+                - UseS3ManagedEncryptionKey
+                - !Ref AWS::NoValue
+                - Effect: Allow
+                  Action:
+                    - kms:Encrypt
+                    - kms:Decrypt
+                    - kms:GenerateDataKey*
+                  Resource:
+                    - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${BucketEncryptionKeyId}
+        - PolicyName: RoleAssumptionPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - sts:AssumeRole
+              Resource: "arn:aws:iam::*:role/TerraformResourceCreation*"
+        - PolicyName: CfnHupPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:DescribeStackResource
+              Resource: !Ref AWS::StackId
+  TerraformServerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref TerraformServerRole
+
+
+
+  ######################
+  # Lambda and SNS topic
+  ######################
+  TerraformLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !If
+          - UseDefaultJar
+          - !Sub "scterraform-${AWS::AccountId}"
+          - !Ref LambdaJarBucket
+        S3Key: !If
+          - UseDefaultJar
+          - !Sub "TerraformCustomResourceHandler/bin/aws-servicecatalog-terraform-wrapper.jar"
+          - !Ref LambdaJarKey
+      Environment:
+        Variables:
+          TERRAFORM_SERVER_TAG_KEY: terraform-server-tag-key
+          TERRAFORM_SERVER_TAG_VALUE: terraform-server-tag-value
+          COMMAND_OUTPUT_S3_BUCKET: !Ref OutputStore
+          TERRAFORM_SSM_COMMAND_BUCKET: !Ref SsmCommandStore
+          WHITELISTED_TERRAFORM_ARTIFACT_BUCKET: !If
+            - UseDefaultConfigBucketName
+            - !Sub "terraform-config-${AWS::AccountId}"
+            - !Ref ConfigBucketName
+      FunctionName: TerraformCommandHandler
+      Handler: com.amazon.servicecatalog.terraform.customresource.TerraformRequestHandler
+      MemorySize: 512
+      ReservedConcurrentExecutions: 500
+      Role: !GetAtt TerraformLambdaRole.Arn
+      Runtime: java8
+      Timeout: 300
+
+  TerraformLambdaSnsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: terraform-commands-topic
+      TopicName: terraform-commands-topic
+  TerraformLambdaSnsTopicInvocationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TerraformLambda
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref TerraformLambdaSnsTopic
+  TerraformLambdaSnsSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !GetAtt TerraformLambda.Arn
+      Protocol: lambda
+      TopicArn: !Ref TerraformLambdaSnsTopic
+
+
+
+  ##########################################
+  # Public VPC, gateway, subnet, and route table
+  ##########################################
+  # VPC
+  TerraformVpc:
+    Type: AWS::EC2::VPC
+    Condition: CreateVpc
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TerraformVpc   
+      CidrBlock: 10.255.255.0/24
+      EnableDnsSupport: true
+      EnableDnsHostnames: !If [EnableSshAccess, "true", "false"]
+      InstanceTenancy: !If [CreateDedicatedInstance, "dedicated", "default"]
+
+  # Gateway
+  TerraformInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Condition: CreateVpc
+  TerraformInternetGatewayAttachement:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Condition: CreateVpc
+    Properties:
+      InternetGatewayId: !Ref TerraformInternetGateway
+      VpcId: !Ref TerraformVpc
+
+  # Subnet
+  TerraformPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreateVpc
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TerraformPublicSubnet    
+      AvailabilityZone: !Select [0, !GetAZs ]
+      MapPublicIpOnLaunch: !If [EnableSshAccess, "true", "false"]
+      CidrBlock: 10.255.255.0/25
+      VpcId: !Ref TerraformVpc
+
+  # Route table
+  TerraformPublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Condition: CreateVpc
+    Properties:
+      VpcId: !Ref TerraformVpc
+  TerraformPublicRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateVpc
+    Properties:
+      RouteTableId: !Ref TerraformPublicRouteTable
+      SubnetId: !Ref TerraformPublicSubnet
+  TerraformPublicGatewayRoute:
+    Type: AWS::EC2::Route
+    Condition: CreateVpc
+    DependsOn: TerraformPublicRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TerraformPublicRouteTable
+      GatewayId: !Ref TerraformInternetGateway
+      DestinationCidrBlock: 0.0.0.0/0
+
+
+
+  ##############################################
+  # Private subnet, NAT gateway, and route table
+  ##############################################
+  # Subnet
+  TerraformPrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: CreatePrivateSubnet
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TerraformPrivateSubnet    
+      AvailabilityZone: !Select [0, !GetAZs ]
+      MapPublicIpOnLaunch: false
+      CidrBlock: 10.255.255.128/25
+      VpcId: !Ref TerraformVpc
+
+  # NAT gateway and EIP
+  TerraformNatEip:
+      Type: AWS::EC2::EIP
+      Condition: CreatePrivateSubnet
+      Properties:
+        Domain: vpc
+  TerraformNatGateway:
+    Type: AWS::EC2::NatGateway
+    Condition: CreatePrivateSubnet
+    Properties:
+      AllocationId: !GetAtt TerraformNatEip.AllocationId
+      SubnetId: !Ref TerraformPublicSubnet
+
+  # Route table
+  TerraformPrivateRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Condition: CreatePrivateSubnet
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TerraformPrivateRouteTable
+      VpcId: !Ref TerraformVpc
+  TerraformPrivateRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreatePrivateSubnet
+    Properties:
+      RouteTableId: !Ref TerraformPrivateRouteTable
+      SubnetId: !Ref TerraformPrivateSubnet
+  TerraformNatGatewayRoute:
+    Type: AWS::EC2::Route
+    Condition: CreatePrivateSubnet
+    DependsOn: TerraformPrivateRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TerraformPrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref TerraformNatGateway
+
+
+
+  ########################################################################
+  # Wrapper server SecurityGroup, AutoScalingGroup and LaunchConfiguration
+  ########################################################################
+  # SecurityGroup
+  TerraformServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Control access to the TerraformWrapperServer
+      VpcId: !If [CreateVpc, !Ref TerraformVpc, !Ref Vpc]
+      SecurityGroupIngress: !If
+        - EnableSshAccess
+        - - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: !Ref SshInboundIpRange
+        - !Ref AWS::NoValue
+
+  # AutoScalingGroup
+  TerraformServerAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName: !Ref TerraformServerAutoScalingLaunchConfig
+      MaxSize: 20
+      MinSize: 1
+      DesiredCapacity: !Ref WrapperServerCount
+      VPCZoneIdentifier:
+        - !If
+          - CreateVpc
+          - !If
+            - CreatePrivateSubnet
+            - !Ref TerraformPrivateSubnet
+            - !Ref TerraformPublicSubnet
+          - !Ref Subnet
+      Tags:
+        - Key: Name
+          Value: TF-FulfillmentServer
+          PropagateAtLaunch: true
+        - Key: terraform-server-tag-key
+          Value: terraform-server-tag-value
+          PropagateAtLaunch: true
+        # Conditionally reference depencies that may not exist
+        - !If
+          - CreateVpc
+          - Key: PublicRouteDependency
+            Value: !Ref TerraformPublicGatewayRoute
+            PropagateAtLaunch: false
+          - !Ref AWS::NoValue
+        - !If
+          - CreatePrivateSubnet
+          - Key: PrivateRouteDependency
+            Value: !Ref TerraformNatGatewayRoute
+            PropagateAtLaunch: false
+          - !Ref AWS::NoValue
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT10M
+        Count: !Ref WrapperServerCount
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        WaitOnResourceSignals: True
+
+  # LaunchConfiguration
+  TerraformServerAutoScalingLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      AWS::CloudFormation::Authentication:
+        rolebased:
+          type: S3
+          buckets: [ sc-tf-customresource ]
+          roleName: !Ref TerraformServerRole
+      AWS::CloudFormation::Init:
+        configSets:
+          setup:
+            - configure_cfn
+            - install_terraform_wrapper
+            - setup_git
+            - !If [CreateSshIdentity, setup_ssh_identity, !Ref 'AWS::NoValue']
+        configure_cfn:
+          files:
+            '/etc/cfn/cfn-hup.conf':
+              content:
+                !Sub |
+                  [main]
+                  stack=${AWS::StackId}
+                  region=${AWS::Region}
+                  role=${TerraformServerRole}
+                  interval=1
+                  verbose=true
+              mode  : 000400
+              owner : root
+              group : root
+            '/etc/cfn/hooks.d/cfn-auto-reloader.conf':
+              content:
+                !Sub |
+                  [cfn-auto-reloader-hook]
+                  triggers=post.update
+                  path=Resources.TerraformServerAutoScalingLaunchConfig.Metadata.AWS::CloudFormation::Init
+                  action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource TerraformServerAutoScalingLaunchConfig --configsets setup --region ${AWS::Region}
+                  runas=root
+              mode  : 000400
+              owner : root
+              group : root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files: ['/etc/cfn/cfn-hup.conf', '/etc/cfn/hooks.d/cfn-auto-reloader.conf']
+        install_terraform_wrapper:
+          packages:
+            yum:
+              autoconf : []
+              automake : []
+              gcc : []
+              libtool : []
+              python3-devel : []
+              python3-pip : []
+              python3: []
+          commands:
+            01_download_terraform_wrapper:
+              command: !If
+                - UseDefaultWrapperScript
+                - !Sub 'aws s3 cp s3://scterraform-${AWS::AccountId}/TerraformScripts/bin/sc_terraform_wrapper-1.2-py3-none-any.whl /tmp/sc_terraform_wrapper-1.2-py3-none-any.whl'
+                - !Sub 'aws s3 cp s3://${WrapperScriptBucket}/${WrapperScriptKey} /tmp/${WrapperScriptKey}'
+            02_install_terraform_wrapper:
+              command: !If
+                - UseDefaultWrapperScript
+                - 'pip3 install --upgrade /tmp/sc_terraform_wrapper-1.2-py3-none-any.whl'
+                - !Sub 'pip3 install --upgrade /tmp/${WrapperScriptKey}'
+            03_cleanup:
+              command: !If
+                - UseDefaultWrapperScript
+                - 'rm /tmp/sc_terraform_wrapper-1.2-py3-none-any.whl'
+                - !Sub 'rm /tmp/${WrapperScriptKey}'
+            04_install_terraform:
+              command: !Sub '/usr/local/bin/install-terraform ${TerraformVersion}'
+          files:
+           '/usr/local/var/sc-config.json' :
+            content:
+              !Sub |
+              {
+                "region" : "${AWS::Region}",
+                "bucket" : "${StateStore}",
+                "root-workspace-path" : "/home/ec2-user/TerraformWorkspace"
+              }
+            mode  : 000400
+            owner : root
+            group : root
+        setup_git:
+          packages:
+            yum:
+              git : []
+        setup_ssh_identity:
+          packages:
+            yum:
+              jq : []
+          commands:
+            01_upgrade_aws_cli:
+              command: 'pip install --upgrade awscli --user'
+            02_create_ssh_directory:
+              command: 'mkdir -p -m 700 /root/.ssh'
+            03_generate_identity_file:
+              command: 'touch /root/.ssh/id_rsa'
+            04_set_identity_file_permissions:
+              command: 'chmod 600 /root/.ssh/id_rsa'
+            05_generate_known_hosts_file:
+              command: 'touch /root/.ssh/known_hosts'
+            06_set_known_hosts_permissions:
+              command: 'chmod 600 /root/.ssh/known_hosts'
+            07_get_ssh_identity:
+              command: !Sub 'aws secretsmanager get-secret-value --secret-id ${SshIdentitySecret} --region ${AWS::Region} --version-stage AWSCURRENT | jq .SecretString -r > /root/.ssh/id_rsa'
+            08_get_known_hosts:
+              command: !Sub 'aws secretsmanager get-secret-value --secret-id ${SshKnownHostsSecret} --region ${AWS::Region} --version-stage AWSCURRENT | jq .SecretString -r > /root/.ssh/known_hosts'
+
+
+    Properties:
+      AssociatePublicIpAddress: !If [CreatePrivateSubnet, false, true]
+      IamInstanceProfile: !Ref TerraformServerInstanceProfile
+      ImageId: !Ref ServerLatestAmiId
+      InstanceType: !If [CreateDedicatedInstance, "c5.large", "t2.micro"]
+      KeyName: !If [EnableSshAccess, !Ref SshAccessKeyName, !Ref "AWS::NoValue"]
+      PlacementTenancy: !If [CreateDedicatedInstance, "dedicated", "default"]
+      SecurityGroups:
+        - !GetAtt TerraformServerSecurityGroup.GroupId
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            yum update -y aws-cfn-bootstrap
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource TerraformServerAutoScalingLaunchConfig --configsets setup --region ${AWS::Region}
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource TerraformServerAutoScalingGroup --region ${AWS::Region}
+Outputs:
+  TerraformLambdaSnsTopic:
+    Description: 'TerraformLambdaSnsTopic Topic ARN'
+    Value: !Ref TerraformLambdaSnsTopic

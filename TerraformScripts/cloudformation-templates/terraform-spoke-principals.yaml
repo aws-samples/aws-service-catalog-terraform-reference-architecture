@@ -1,0 +1,109 @@
+Metadata:
+   License: Apache-2.0
+Description:
+  "This template uses a limited ResourceCreationPolicy that only allows EndUsers to create S3
+  buckets. If your EndUsers need to create other resources, you should update the
+  ResourceCreationPolicy with additional permissions.
+
+  This template generates two roles. The TerraformLaunchRole will be used to send commands to the
+  FulfillmentHubAccount.  The TerraformResourceCreationRole is a role that is assumed by a FulfillmentHub account's
+  TerraformLambdaRole and TerraformServerRole to create resources.
+
+  This template also generates a  TerraformLaunchGroup with the permissions needed for EndUsers to
+  provision Terraform products. Any EndUsers that need to launch Terraform products should be added
+  to this group. (fdp-1paht17no)"
+
+
+Parameters:
+  FulfillmentHubAccountId:
+    Type: String
+    Description: The 12 digit ID of the fulfillment hub account containing the EC2 instance that
+                 will be used to apply Terraform configurations.
+    AllowedPattern: "^[0-9]{12}$"
+  FulfillmentRegion:
+    Type: String
+    Default: 'us-east-1'
+    Description: (Optional) The region containing the terraform fulfillment server. Defaults to `us-east-1` of
+                 the reference implementation provided by Service Catalog.
+
+Resources:
+  TerraformLaunchLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "TerraformLaunchLambdaRole"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SendCommandPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: sns:Publish
+                Resource:
+                  - !Sub arn:aws:sns:${FulfillmentRegion}:${FulfillmentHubAccountId}:terraform-commands-topic
+
+  TerraformResourceCreationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: TerraformResourceCreationRole
+      ManagedPolicyArns:
+        # Sample policy for allowing the creation of an S3  bucket. Users should replace this with a
+        # policy that includes the APIs that their Terraform configuration will use to create
+        # resources in the spoke account. This policy should also grant permissions to tag the
+        # resources that are created in order to allow ServiceCatalog to propagate tags from a
+        # ProvisionedProduct to the associated resources.
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${FulfillmentHubAccountId}:role/TerraformServerRole'
+                - !Sub 'arn:aws:iam::${FulfillmentHubAccountId}:role/TerraformLambdaRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Sub TerraformHubAccount-${FulfillmentHubAccountId}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: TerraformWrapperExecutionPolicy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:DescribeStacks
+                - tag:TagResources
+                - resource-groups:CreateGroup
+                - resource-groups:GetGroup
+                - resource-groups:DeleteGroup
+              Resource: '*'
+
+  TerraformLaunchGroup:
+    Type: AWS::IAM::Group
+    Properties:
+      GroupName: TerraformLaunchGroup
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSServiceCatalogEndUserFullAccess
+      Policies:
+        - PolicyName: TerraformLaunchLambdaPolicy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !Sub arn:aws:lambda:*:${AWS::AccountId}:function:TerraformLaunchHandler
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: '*'
+Outputs:
+  TerraformLaunchLambdaRoleArn:
+    Description: 'TerraformLaunchLambdaRole Role ARN'
+    Value: !GetAtt TerraformLaunchLambdaRole.Arn

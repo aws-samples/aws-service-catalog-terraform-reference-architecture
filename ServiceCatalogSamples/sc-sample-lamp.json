@@ -1,0 +1,81 @@
+{
+    "Parameters": {
+
+        "ImageID": {
+            "Type": "String",
+            "Description":"Enter an AMI for your region"
+        },
+        "KeyName": {
+            "Type": "AWS::EC2::KeyPair::KeyName"
+        },
+        "SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup::Id"
+        },
+        "Subnet": {
+            "Type": "AWS::EC2::Subnet::Id"
+        },
+        "Size": {
+              "Type": "String",
+              "Default":"t2.micro",
+              "AllowedValues": ["t2.micro","t2.medium","t2.large","t2.xlarge"]
+            } 
+         
+
+
+    },
+    "Resources": {
+        "MyTerraformStack": {
+            "Type": "Custom::TerraformStack",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:TerraformLaunchHandler"
+                },
+                "TerraformArtifactUrl": {
+                    "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-lamp.tf"
+                },
+                "LaunchRoleArn": {
+                    "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole"
+                },
+                "TerraformVariables": {
+                    "aws_region": {
+                        "Fn::Sub": "${AWS::Region}"
+                    },
+                    "aws_ami": {
+                        "Ref": "ImageID"
+                    },
+                    "key_name": {
+                        "Ref": "KeyName"
+                    },
+                    "aws_sg": {
+                        "Ref": "SecurityGroup"
+                    },
+                    "aws_subnet": {
+                        "Ref": "Subnet"
+                    },
+                    "instance_type": {
+                        "Ref": "Size"
+                    }
+
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "ScriptOutput": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "MyTerraformStack",
+                    "TerraformScriptOutputLocation"
+                ]
+            }
+        },
+        "MyOutputVariables": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "MyTerraformStack",
+                    "Outputs"
+                ]
+            }
+        }
+    }
+}

@@ -113,8 +113,8 @@ You now have all the files needed for launch in the S3 Bucket which has the same
   10.  Choose **Next**
   11. On the **Configure stack options** page chose **Next**
   12. On the **Review** page
-    - choose the check box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
-    - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** and choose **Create Stack**
+  - choose the check box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
+  - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** and choose **Create Stack**
   
 
   When the Status changes to **CREATE_COMPLETE** once the stack is created. 

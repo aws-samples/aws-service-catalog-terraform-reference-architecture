@@ -72,7 +72,7 @@
       "Properties": {
         "Owner": "MP Team",
         "SupportDescription": "Support Description",
-        "Description":"Lamp Stack-TF",
+        "Description": "Lamp Stack-TF",
         "Distributor": "AWS MP Team Sample",
         "SupportEmail": "awsmp@example.com",
         "AcceptLanguage": "en",
@@ -138,14 +138,11 @@
         "Fn::Sub": "https://console.aws.amazon.com/servicecatalog/home"
       }
     },
-       "NewPortFolio": {
+    "NewPortFolio": {
       "Description": "Service Catalog Portfolio URL",
       "Value": {
-        "Fn::Sub": "https://console.aws.amazon.com/servicecatalog/home?region=${AWS::Region}#/portfolio/details?portfolioId=${SCsampleport}"}
+        "Fn::Sub": "https://console.aws.amazon.com/servicecatalog/home?region=${AWS::Region}#/portfolio/details?portfolioId=${SCsampleport}"
       }
     }
-
-   
   }
-
 }

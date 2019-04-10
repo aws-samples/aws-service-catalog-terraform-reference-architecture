@@ -128,11 +128,11 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
 
 ## Create AWS Service Catalog portfolio and product based on Terraform
-- 
+ 
 1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/).
 2. Choose the **terraform-config-[YOUR-ACCOUNT-ID]** bucket
 3. Choose **Upload**
-4. use the file explorer opened earlier to open the **ServiceCatalogSamples** dirtory
+4. use the file explorer opened earlier to open the **ServiceCatalogSamples** folder
 5. Select and drag over the following files
 - sc-sample-lamp.json
 - sc-sample-lamp.tf
@@ -140,9 +140,8 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 - sc-sample-S3.json
 - sc-sample-S3.tf
 6. Choose **Upload**
-7. In the S3 Console, choose the **https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/sc-sample-port-product-setup.json** file
-8. Copy the URL
-5. Sign in to the AWS Console using the hub account.
+7. In the S3 Console, choose the **sc-sample-port-product-setup.json** file
+8. Righ click and Copy the URL
 6.  Navigate to the **CloudFormation console** https://console.aws.amazon.com/cloudformation/
 7.  Verify the **region**. 
 8.  Choose **Create Stack**.

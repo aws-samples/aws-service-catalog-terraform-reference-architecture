@@ -66,7 +66,6 @@ Leve it open, we will use it in a moment
 10. Choose the **Upload** button
 
 11.use the file explorer opened earlier to drag over the following folders
-- ServiceCatalogSamples
 - TerraformScripts
 - TerraformCustomResourceHandler
 12.Choose **Upload**
@@ -90,7 +89,6 @@ AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/
 You now have all the files needed for launch in the S3 Bucket which has the same file structure as this github repo:  
 
     S3 Bukcet: scterraform-[YOUR-ACCOUNT-ID]  
-    ├── ServiceCatalogSamples/  
     ├── TerraformScripts/  
     │   ├── cloudformation-templates/  
     │   │   ├── terraform-architecture-single-account.yaml  
@@ -130,12 +128,22 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
 
 ## Create AWS Service Catalog portfolio and product based on Terraform
-
-1. Choose the **scterraform-[YOUR-ACCOUNT-ID]** bucket
-2. In the S3 Console, choose the **https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/sc-sample-port-product-setup.json** file
-3. Copy the URL
+- 
+1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/).
+2. Choose the **terraform-config-[YOUR-ACCOUNT-ID]** bucket
+3. Choose **Upload**
+4. use the file explorer opened earlier to open the **ServiceCatalogSamples** dirtory
+5. Select and drag over the following files
+- sc-sample-lamp.json
+- sc-sample-lamp.tf
+- sc-sample-port-product-setup.json
+- sc-sample-S3.json
+- sc-sample-S3.tf
+6. Choose **Upload**
+7. In the S3 Console, choose the **https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/sc-sample-port-product-setup.json** file
+8. Copy the URL
 5. Sign in to the AWS Console using the hub account.
-6.  Navigate to the CloudFormation console https://console.aws.amazon.com/cloudformation/
+6.  Navigate to the **CloudFormation console** https://console.aws.amazon.com/cloudformation/
 7.  Verify the **region**. 
 8.  Choose **Create Stack**.
 9.  Under Choose a template, select Specify an Amazon S3 template URL.

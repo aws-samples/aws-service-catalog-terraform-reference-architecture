@@ -58,7 +58,7 @@ There are two methods for copying files to S3
 9. Choose the **scterraform-[YOUR-ACCOUNT-ID]** 
 10. Choose the **Upload** button
 11. Choose the **Add files** button
-12. Select the following folders and choose **Upload**
+12. Select the following files and choose **Upload**
   -  TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml  
   -  TerraformScripts/cloudformation-templates/terraform-fulfillment-server.yaml  
   -  TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml  

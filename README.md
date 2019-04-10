@@ -47,8 +47,10 @@ There are two methods for copying files to S3
 
 #### AWS S3 Console
 
-Open file Explorer to the top directory of your local git repo
-
+##### Prep
+- Open file Explorer to the top directory of your local git repo
+- ![Solution Overview](documentation/images/gitfileex.png)  
+Leve it open, we will use it in a moment
 
 
 
@@ -62,9 +64,12 @@ Open file Explorer to the top directory of your local git repo
 8. On the **Review** page choose  **Create Bucket** 
 9. Choose the **scterraform-[YOUR-ACCOUNT-ID]** 
 10. Choose the **Upload** button
-11.
-11. Choose the **Add files** button
+11.use the file explorer opened earlier to drag over the following folders
+- ServiceCatalogSamples
+- TerraformScripts
+- TerraformCustomResourceHandler
 12. Select the following files and choose **Upload**
+
   -  TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml  
   -  TerraformScripts/cloudformation-templates/terraform-fulfillment-server.yaml  
   -  TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml  
@@ -83,13 +88,16 @@ AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/
 2.  Copy the following files to the bucket maintaining the file structure:
     ```
      aws s3 sync ./TerraformCustomResourceHandler/bin/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/  
-     aws s3 sync ./TerraformScripts/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/  
+      aws s3 sync ./ServiceCatalogSamples/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/  
+      
+     aws s3 sync ./TerraformScripts/ s3://scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/  
     ```  
 
 
 You now have all the files needed for launch in the S3 Bucket which has the same file structure as this github repo:  
 
     S3 Bukcet: scterraform-[YOUR-ACCOUNT-ID]  
+    ├── ServiceCatalogSamples/  
     ├── TerraformScripts/  
     │   ├── cloudformation-templates/  
     │   │   ├── terraform-architecture-single-account.yaml  
@@ -138,7 +146,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
     - ServiceCatalogSamples/sc-sample-S3.tf
 
 2. View the files via the S3 console
-3. Choose the **sc-sample-port-product-setup.json** file
+3. Choose the **sc-sample-port-product-setup.json** file https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/sc-sample-port-product-setup.json
 4. Copy the URL
 5. Sign in to the AWS Console using the hub account.
 6.  Navigate to the CloudFormation console https://console.aws.amazon.com/cloudformation/

@@ -106,8 +106,9 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
 
  ### Installing the Service Catalog Terraform reference architecture into a single account hub account  
-  1. In the S3 Console, choose the **TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml** file and copy the URL which should be simillar to this:  
-  ``` https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml ```
+ 
+  1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/).In the S3 Console, choose the **TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml** file
+  2. Copy the URL 
   2. Navigate to the CloudFormation [console](https://console.aws.amazon.com/cloudformation/).
   3. Verify the region. 
   4. Choose **Create Stack**.
@@ -133,7 +134,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/).
 2. Choose the **terraform-config-[YOUR-ACCOUNT-ID]** bucket
 3. Choose **Upload**
-4. use the file explorer opened earlier to open the **ServiceCatalogSamples** folder
+4. Use the file explorer opened earlier to open the **ServiceCatalogSamples** folder
 5. Select and drag over the following files
 - sc-sample-lamp.json
 - sc-sample-lamp.tf

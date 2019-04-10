@@ -369,6 +369,7 @@ Terraform is a popular infrastructure as code option for enterprises. It offers 
 
 ### Contributors
 - Kenneth Walsh, Solution Architect, Amazon Web Services
+- Chris Chapman, Solution Architect, Amazon Web Services
 
 ### Further Reading
 - https://www.terraform.io/intro/index.html

@@ -47,6 +47,11 @@ There are two methods for copying files to S3
 
 #### AWS S3 Console
 
+Open file Explorer to the top directory of your local git repo
+
+
+
+
 1. Sign in to the AWS Console and navigate to the S3 console. https://s3.console.aws.amazon.com/s3/home
 2. Verify the region. 
 3. Choose the **+Create bucket** button.
@@ -57,6 +62,7 @@ There are two methods for copying files to S3
 8. On the **Review** page choose  **Create Bucket** 
 9. Choose the **scterraform-[YOUR-ACCOUNT-ID]** 
 10. Choose the **Upload** button
+11.
 11. Choose the **Add files** button
 12. Select the following files and choose **Upload**
   -  TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml  

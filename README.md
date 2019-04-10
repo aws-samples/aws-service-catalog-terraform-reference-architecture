@@ -111,6 +111,10 @@ You now have all the files needed for launch in the S3 Bucket which has the same
   8. For Stack name, type **TerraformArchitecture-SingleAccount**.
   9. Leave all the parameters as defaults.
   10.  Choose **Next**
+  11. On the **Configure stack options** page chose **Next**
+  12. On the **Review** page chose 
+    - choos3 the check box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
+    - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** and choose **Create Stack**
   11.  Choose **Create** to create the Terraform instance.
 
   The Status changes to CREATE_COMPLETE once the stack is created. 

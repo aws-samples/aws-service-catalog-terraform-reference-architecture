@@ -49,8 +49,8 @@ There are two methods for copying files to S3
 
 ##### Prep
 - Open file Explorer to the top directory of your local git repo
-- ![Solution Overview](documentation/images/gitfileex.png)  
-Leve it open, we will use it in a moment
+![Solution Overview](documentation/images/gitfileex.png)  
+Leave it open, we will use it in a moment
 
 
 
@@ -65,10 +65,11 @@ Leve it open, we will use it in a moment
 9. Choose the **scterraform-[YOUR-ACCOUNT-ID]** 
 10. Choose the **Upload** button
 
-11.use the file explorer opened earlier to drag over the following folders
+11. Use the file explorer opened earlier to drag over the following folders
 - TerraformScripts
 - TerraformCustomResourceHandler
-12.Choose **Upload**
+
+12. Choose **Upload**
 
 #### AWS CLI
 

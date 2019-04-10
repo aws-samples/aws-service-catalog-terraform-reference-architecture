@@ -64,19 +64,12 @@ Leve it open, we will use it in a moment
 8. On the **Review** page choose  **Create Bucket** 
 9. Choose the **scterraform-[YOUR-ACCOUNT-ID]** 
 10. Choose the **Upload** button
+
 11.use the file explorer opened earlier to drag over the following folders
 - ServiceCatalogSamples
 - TerraformScripts
 - TerraformCustomResourceHandler
-12. Select the following files and choose **Upload**
-
-  -  TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml  
-  -  TerraformScripts/cloudformation-templates/terraform-fulfillment-server.yaml  
-  -  TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml  
-  -  TerraformScripts/cloudformation-templates/terraform-spoke-principals.yaml  
-  -  TerraformScripts/bin/sc_terraform_wrapper-1.2-py3-none-any.whl  
-  -  TerraformCustomResourceHandler/bin/aws-servicecatalog-terraform-wrapper.jar  
-
+12.Choose **Upload**
 
 #### AWS CLI
 
@@ -138,22 +131,15 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
 ## Create AWS Service Catalog portfolio and product based on Terraform
 
-1. Copy the following files to the **terraform-config-[YOUR-ACCOUNT-ID]** bucket: **Note** This bucket was created for you by the install CloudFormation stack.  
-    - ServiceCatalogSamples/sc-sample-lamp.json
-    - ServiceCatalogSamples/sc-sample-lamp.tf
-    - ServiceCatalogSamples/sc-sample-port-product-setup.json
-    - ServiceCatalogSamples/sc-sample-S3.json
-    - ServiceCatalogSamples/sc-sample-S3.tf
-
-2. View the files via the S3 console
-3. Choose the **sc-sample-port-product-setup.json** file https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/sc-sample-port-product-setup.json
-4. Copy the URL
+1. Choose the **scterraform-[YOUR-ACCOUNT-ID]** bucket
+2. In the S3 Console, choose the **https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/sc-sample-port-product-setup.json** file
+3. Copy the URL
 5. Sign in to the AWS Console using the hub account.
 6.  Navigate to the CloudFormation console https://console.aws.amazon.com/cloudformation/
 7.  Verify the **region**. 
 8.  Choose **Create Stack**.
 9.  Under Choose a template, select Specify an Amazon S3 template URL.
-10.  Paste the URL you copied in step 4 
+10.  Paste the URL you copied in the step above. 
 12.  For Stack name, type **SCTFportfoliosetup**.
 13.  For all the other parameters use the defaults.
 14. Choose **Next**.

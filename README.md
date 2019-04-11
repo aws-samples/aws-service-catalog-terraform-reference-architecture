@@ -362,5 +362,9 @@ The spoke account’s IAM Resource Creation Role uses an ExternalId to limit acc
 
 The hub account’s Terraform Wrapper Server will have access to Resource Creation Roles in multiple spoke accounts. To limit the exposure of these roles, you should restrict access to the hub account as much as possible and use the hub account for Terraform functionality only. 
 
+## Questions and Comments  
+aws-sa-servicecatalog@amazon.com
+
+
 ### Further Reading
 - https://www.terraform.io/intro/index.html

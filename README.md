@@ -81,8 +81,7 @@ AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/
 2.  Copy the following files to the bucket maintaining the file structure:
     ```
      aws s3 sync ./TerraformCustomResourceHandler/bin/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/  
-      aws s3 sync ./ServiceCatalogSamples/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/  
-      
+     aws s3 sync ./ServiceCatalogSamples/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/   
      aws s3 sync ./TerraformScripts/ s3://scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/  
     ```  
 

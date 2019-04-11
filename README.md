@@ -363,18 +363,5 @@ The spoke account’s IAM Resource Creation Role uses an ExternalId to limit acc
 
 The hub account’s Terraform Wrapper Server will have access to Resource Creation Roles in multiple spoke accounts. To limit the exposure of these roles, you should restrict access to the hub account as much as possible and use the hub account for Terraform functionality only. 
 
-### Conclusion
-
-Terraform is a popular infrastructure as code option for enterprises. It offers many benefits, such as orchestration, multiple public cloud support and hybrid cloud support. It allows safe and convenient design, management, and improvement for infrastructure as code. The AWS Service Catalog and Terraform Reference Architecture combines the features and benefits of AWS Service Catalog along with the benefits of Terraform. 
-
-### Contributors
-- Kenneth Walsh, Solution Architect, Amazon Web Services
-- Chris Chapman, Solution Architect, Amazon Web Services
-
 ### Further Reading
 - https://www.terraform.io/intro/index.html
-
-
- 
-
-

@@ -48,6 +48,9 @@ There are two methods for copying files to S3
 #### AWS S3 Console
 
 ##### Prep
+- Git the content via a Git command or download
+
+**Via Git Command**
 - Clone the repository to your local computer
 
 ``` 
@@ -55,7 +58,10 @@ There are two methods for copying files to S3
   
 ```
 The **aws-service-catalog-terraform-reference-architecture** folder is created
-  
+
+**Via Download**
+![Solution Overview](documentation/images/cloneorzip.png)
+
 To view the contents
 
 ```

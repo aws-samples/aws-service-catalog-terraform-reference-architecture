@@ -52,6 +52,21 @@ There are two methods for copying files to S3
 
 ``` 
   git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
+  
+  cd  aws-service-catalog-terraform-reference-architecture
+  ls -l
+
+    CODE_OF_CONDUCT.md
+    CONTRIBUTING.md
+    documentation
+    LICENSE
+    NOTICE
+    README.md
+    ServiceCatalogSamples
+    TerraformCustomResourceHandler
+    TerraformScripts
+
+  
 
 ```
 

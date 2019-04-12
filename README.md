@@ -48,6 +48,8 @@ There are two methods for copying files to S3
 #### AWS S3 Console
 
 ##### Prep
+- Clone the repository to your local computer
+
 - Open file Explorer to the top directory of your local git repo
 ![Solution Overview](documentation/images/gitfileex.png)  
 Leave it open, we will use it in a moment

@@ -49,7 +49,7 @@ There are two methods for copying files to S3
 
 ##### Prep
 - Clone the repository to your local computer
-```git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
+``` git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
 ```
 
 - Open file Explorer to the top directory of your local git repo

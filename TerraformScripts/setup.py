@@ -10,7 +10,7 @@ setup(
         'boto3 ~= 1.7.27',
         'python-dateutil ~= 2.7.3',
         'pyjq ~= 2.1.0',
-        'requests ~= 2.18.4'
+        'requests >= 2.20.0'
     ],
 
     packages=["sc_terraform_wrapper"],

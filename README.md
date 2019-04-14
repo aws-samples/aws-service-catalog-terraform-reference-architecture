@@ -48,6 +48,43 @@ There are two methods for copying files to S3
 #### AWS S3 Console
 
 ##### Prep
+- Git the content via a Git command or download
+
+**Via Git Command**
+- Clone the repository to your local computer
+
+``` 
+  git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
+  
+```
+The **aws-service-catalog-terraform-reference-architecture** folder is created
+
+**Via Download**
+- Choose the **Clone or download** button
+- Choose **Download ZIP**
+- Unzip the file into a folder
+
+![Solution Overview](documentation/images/cloneorzip.png)
+
+
+To view the contents
+
+```
+  cd  aws-service-catalog-terraform-reference-architecture
+  ls -l
+
+    CODE_OF_CONDUCT.md
+    CONTRIBUTING.md
+    documentation
+    LICENSE
+    NOTICE
+    README.md
+    ServiceCatalogSamples
+    TerraformCustomResourceHandler
+    TerraformScripts
+
+```
+
 - Open file Explorer to the top directory of your local git repo
 ![Solution Overview](documentation/images/gitfileex.png)  
 Leave it open, we will use it in a moment
@@ -55,9 +92,9 @@ Leave it open, we will use it in a moment
 
 
 1. Sign in to the AWS Console and navigate to the S3 console. https://s3.console.aws.amazon.com/s3/home
-2. Verify the region. 
-3. Choose the **+Create bucket** button.
-4. Enter scterraform-[YOUR-ACCOUNT-ID] for the **Bucket Name**
+2. Choose the **Create bucket** button.
+3. Enter scterraform-[YOUR-ACCOUNT-ID] for the **Bucket Name**
+4. Verify the region. 
 5. Choose **Next**
 6. On the **Properties** page choose **Next**
 7. On the **Set permissions** page choose **Next**
@@ -101,6 +138,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
         └── bin/  
             └── aws-servicecatalog-terraform-wrapper.jar  
 
+**Note** We have only listed the files you must have access to for this demonstration, more files are included in the actual git repository
 
 
 
@@ -120,7 +158,8 @@ You now have all the files needed for launch in the S3 Bucket which has the same
   11. On the **Configure stack options** page chose **Next**
   12. On the **Review** page
   - choose the check box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
-  - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** and choose **Create Stack**
+  - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** 
+  14. choose **Create Stack**
   
 
   When the Status changes to **CREATE_COMPLETE** once the stack is created. 
@@ -151,7 +190,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 12.  For Stack name, type **SCTFportfoliosetup**.
 13.  For all the other parameters use the defaults.
 14. Choose **Next**.
-15. Choose **Create** to create the Service Catalog Sample Terraform Portfolio.
+15. Choose **Create Stack** to create the Service Catalog Sample Terraform Portfolio.
 16. When the stack is complete, choose the **Outputs** tab
 17. Choose the **NewPortFolio** to complete the setup and launch the sample products.
 

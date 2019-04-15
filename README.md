@@ -100,7 +100,7 @@ Leave it open, we will use it in a moment
 
 12. Choose **Upload**
 
-===
+---
 #### VIA AWS CLI
  
 - Clone the repository to your local computer
@@ -160,7 +160,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
 **Note** We have only listed the files you must have access to for this demonstration, more files are included in the actual git repository
 
-
+---
 
  ### Installing the Service Catalog Terraform reference architecture into a single account hub account  
  

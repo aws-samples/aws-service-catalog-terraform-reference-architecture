@@ -48,7 +48,7 @@ There are two methods for copying files to S3
 #### AWS S3 Console
 
 ##### Prep
-- Git the content via a Git command or download
+- Get the content via a Git command or download
 
 
 **Via Download**
@@ -59,14 +59,7 @@ There are two methods for copying files to S3
 ![Solution Overview](documentation/images/cloneorzip.png)
 
 
-
-**Via Git Command**
-- Clone the repository to your local computer
-
-``` 
-  git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
-  
-```
+ 
 The **aws-service-catalog-terraform-reference-architecture** folder is created
 
 
@@ -112,6 +105,33 @@ Leave it open, we will use it in a moment
 12. Choose **Upload**
 
 #### AWS CLI
+ 
+- Clone the repository to your local computer
+
+``` 
+  git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
+  
+```
+The **aws-service-catalog-terraform-reference-architecture** folder is created
+
+
+To view the contents
+
+```
+  cd  aws-service-catalog-terraform-reference-architecture
+  ls -l
+
+    CODE_OF_CONDUCT.md
+    CONTRIBUTING.md
+    documentation
+    LICENSE
+    NOTICE
+    README.md
+    ServiceCatalogSamples
+    TerraformCustomResourceHandler
+    TerraformScripts
+
+```
 
 AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 

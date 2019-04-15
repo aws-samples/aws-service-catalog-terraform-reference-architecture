@@ -50,6 +50,16 @@ There are two methods for copying files to S3
 ##### Prep
 - Git the content via a Git command or download
 
+
+**Via Download**
+- Choose the **Clone or download** button
+- Choose **Download ZIP**
+- Unzip the file into a folder
+
+![Solution Overview](documentation/images/cloneorzip.png)
+
+
+
 **Via Git Command**
 - Clone the repository to your local computer
 
@@ -58,13 +68,6 @@ There are two methods for copying files to S3
   
 ```
 The **aws-service-catalog-terraform-reference-architecture** folder is created
-
-**Via Download**
-- Choose the **Clone or download** button
-- Choose **Download ZIP**
-- Unzip the file into a folder
-
-![Solution Overview](documentation/images/cloneorzip.png)
 
 
 To view the contents

@@ -45,19 +45,15 @@ There are two methods for copying files to S3
 - AWS S3 Console
 - AWS Command Line Interface (CLI)  
 
-#### AWS S3 Console
+#### VIA AWS S3 Console
 
-##### Prep
-- Get the content via a Git command or download
-
-
-**Via Download**
+ 
+**Get the content Via Download**
 - Choose the **Clone or download** button
 - Choose **Download ZIP**
 - Unzip the file into a folder
 
 ![Solution Overview](documentation/images/cloneorzip.png)
-
 
  
 The **aws-service-catalog-terraform-reference-architecture** folder is created
@@ -104,7 +100,8 @@ Leave it open, we will use it in a moment
 
 12. Choose **Upload**
 
-#### AWS CLI
+===
+#### VIA AWS CLI
  
 - Clone the repository to your local computer
 

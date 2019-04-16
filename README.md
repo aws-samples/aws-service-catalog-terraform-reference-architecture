@@ -40,11 +40,11 @@ The end user has access to this bucket via the AWS Service Catalog GUI or API.
 ---
 ## Installation  
 
-### Copy the Service Catalog Terraform components to a S3 bucket.
+**Copy the Service Catalog Terraform components to a S3 bucket.
 There are two methods for copying files to S3 
 - AWS S3 Console
 - AWS Command Line Interface (CLI)  
-
+---
 #### VIA AWS S3 Console
 
  

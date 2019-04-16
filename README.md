@@ -130,6 +130,8 @@ To view the contents
 
 ```
 
+**YOUR-ACCOUNT-ID]** NO Dashes
+
 AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 
 1.  Create a S3 bucket to host the installation content  
@@ -139,7 +141,7 @@ AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/
     ```
      aws s3 sync ./TerraformCustomResourceHandler/bin/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/  
      aws s3 sync ./ServiceCatalogSamples/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/   
-     aws s3 sync ./TerraformScripts/ s3://scterraform-[YOUR-ACCOUNT-ID]/ServiceCatalogSamples/  
+     aws s3 sync ./TerraformScripts/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/  
     ```  
 
 

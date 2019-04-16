@@ -227,7 +227,7 @@ Service Catalog Console
 
 ### Congratulations, You have completed setting up the Service Catalog Terraform Refrence Archticture components in a single account.
 
-## Stop Here if you are doing this lab in the AWS Loft.
+ 
 ---
 ---
 ## Set up the spoke accounts

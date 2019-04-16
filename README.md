@@ -221,9 +221,10 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 Service Catalog Console
 ![alt text](documentation/images/portsetup004.png)
 
-### Congratulations, You have completed setting up the Service Catalog Terraform Refrence Archticture components in a single account.###
+### Congratulations, You have completed setting up the Service Catalog Terraform Refrence Archticture components in a single account.
 
-##Stop Here if you are doing this lab in the AWS Loft.##
+## Stop Here if you are doing this lab in the AWS Loft.
+---
 ---
 ## Set up the spoke accounts
 
@@ -234,7 +235,7 @@ Service Catalog Console
   
 ### Create the spoke account Terraform roles
 
-**Note:** Make sure the TerraformWrapperServer CloudFormation stack has a status of CREATE_COMPLETE before proceeding.   
+**Note:** Make sure the **TerraformArchitecture-SingleAccount** CloudFormation stack has a status of CREATE_COMPLETE before proceeding.   
 
 1.  Sign in to the AWS Console using the spoke account.
 2.  Navigate to the CloudFormation console https://console.aws.amazon.com/cloudformation/

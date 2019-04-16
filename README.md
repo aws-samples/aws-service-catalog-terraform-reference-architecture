@@ -194,7 +194,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 ## Create AWS Service Catalog portfolio and product based on Terraform
  
 1. Navigate to the S3 [S3 console](https://console.aws.amazon.com/s3/).
-2. Choose the ## **terraform-config-[YOUR-ACCOUNT-ID]** bucket
+2. Choose the __ **terraform-config-[YOUR-ACCOUNT-ID]**__ bucket
 3. Choose **Upload**
 4. Use the file explorer opened earlier to open the **ServiceCatalogSamples** folder
 5. Select and drag over the following files

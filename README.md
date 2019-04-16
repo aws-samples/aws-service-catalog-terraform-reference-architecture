@@ -40,7 +40,8 @@ The end user has access to this bucket via the AWS Service Catalog GUI or API.
 ---
 ## Installation  
 
-**Copy the Service Catalog Terraform components to a S3 bucket.
+Copy the Service Catalog Terraform components to a S3 bucket.
+
 There are two methods for copying files to S3 
 - AWS S3 Console
 - AWS Command Line Interface (CLI)  
@@ -80,7 +81,6 @@ To view the contents
 - Open file Explorer to the top directory of your local git repo
 ![Solution Overview](documentation/images/gitfileex.png)  
 Leave it open, we will use it in a moment
-
 
 
 1. Sign in to the AWS Console and navigate to the S3 console. https://s3.console.aws.amazon.com/s3/home

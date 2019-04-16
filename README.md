@@ -83,6 +83,8 @@ To view the contents
 Leave it open, we will use it in a moment
 
 
+**Note [YOUR-ACCOUNT-ID]** NO DASHES
+
 1. Sign in to the AWS Console and navigate to the S3 console. https://s3.console.aws.amazon.com/s3/home
 2. Choose the **Create bucket** button.
 3. Enter scterraform-[YOUR-ACCOUNT-ID] for the **Bucket Name**
@@ -130,7 +132,7 @@ To view the contents
 
 ```
 
-**YOUR-ACCOUNT-ID]** NO Dashes
+**Note [YOUR-ACCOUNT-ID]** NO DASHES
 
 AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 

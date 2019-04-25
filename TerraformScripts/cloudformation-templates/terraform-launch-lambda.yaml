@@ -42,7 +42,7 @@ Resources:
       Code:
         S3Bucket: !If
           - UseDefaultJar
-          - !Sub "scterraform-${AWS::AccountId}"
+          - !Sub "scterraform-${FulfillmentHubAccountId}"
           - !Ref LambdaJarBucket
         S3Key: !If
           - UseDefaultJar

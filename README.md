@@ -56,27 +56,7 @@ There are two methods for copying files to S3
 
 ![Solution Overview](documentation/images/cloneorzip.png)
 
- 
 The **aws-service-catalog-terraform-reference-architecture** folder is created
-
-
-To view the contents
-
-```
-  cd  aws-service-catalog-terraform-reference-architecture
-  ls -l
-
-    CODE_OF_CONDUCT.md
-    CONTRIBUTING.md
-    documentation
-    LICENSE
-    NOTICE
-    README.md
-    ServiceCatalogSamples
-    TerraformCustomResourceHandler
-    TerraformScripts
-
-```
 
 - Open file Explorer to the top directory of your local git repo
 ![Solution Overview](documentation/images/gitfileex.png)  
@@ -86,7 +66,7 @@ Leave it open, we will use it in a moment
 **Note [YOUR-ACCOUNT-ID]** NO DASHES
 
 1. Sign in to the AWS Console and navigate to the S3 console. https://s3.console.aws.amazon.com/s3/home
-2. Choose the **Create bucket** button.
+2. Choose the **Create bucket** button. Use the [default settings](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-bucket.html) for creating this bucket.  See step 6 in the [linked instructions](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-bucket.html) concerning default S3 permissions.
 3. Enter scterraform-[YOUR-ACCOUNT-ID] for the **Bucket Name**
 4. Verify the region. 
 5. Choose **Next**

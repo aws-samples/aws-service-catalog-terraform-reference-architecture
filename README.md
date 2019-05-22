@@ -40,7 +40,8 @@ The end user has access to this bucket via the AWS Service Catalog GUI or API.
 ---
 ## Installation  
 
-Copy the Service Catalog Terraform components to a S3 bucket.
+Copy the Service Catalog Terraform components to a S3 bucket to be launched from CloudFormation.  
+It is assumed that the user has Administerative privileges in IAM for S3, CloudFormation, EC2, VPC, Lambda, and Service Catalog.
 
 There are two methods for copying files to S3 
 - AWS S3 Console

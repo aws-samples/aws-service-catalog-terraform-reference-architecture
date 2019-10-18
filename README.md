@@ -158,7 +158,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
   6. Paste the URL you copied from step 1 above  
   7. Choose **Next**.
   8. For Stack name, type **TerraformArchitecture-SingleAccount**.
-  - **Note for TerraFormVersion enter 0.11.4**
+  - **Note for TerraFormVersion enter 0.12.10**
   9. Leave all the other parameters as defaults.
   10.  Choose **Next**
   11. On the **Configure stack options** page chose **Next**

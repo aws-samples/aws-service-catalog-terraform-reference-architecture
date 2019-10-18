@@ -41,7 +41,7 @@ BACKEND_CONFIG_FORMAT = """terraform {{
 """
 
 AWS_PROVIDER_FORMAT = """provider "aws" {{
-  assume_role = {{
+  assume_role {{
     role_arn = "{role_arn}"
     session_name = "{session_name}"
     external_id = "{external_id}"
@@ -107,7 +107,7 @@ def inject_aws_provider_override(workspace_path, region, assume_role_input):
 
 def inject_variables(workspace_path, resource_properties):
     if resource_properties.get('TerraformVariables'):
-        variables_file_name = 'variables-{}.auto.tfvars'.format(uuid.uuid4())
+        variables_file_name = 'variables-{}.auto.tfvars.json'.format(uuid.uuid4())
         with open(os.path.join(workspace_path, variables_file_name), 'w') as f:
             json.dump(resource_properties['TerraformVariables'], f)
 

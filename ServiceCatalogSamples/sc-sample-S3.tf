@@ -17,6 +17,7 @@ resource "random_id" "ran_dom_suffix" {
 resource "aws_s3_bucket" "bucket" {
   bucket = "${var.bucket_name}${random_id.ran_dom_suffix.hex}"
   acl    = "private"
+  force_destroy = true
   website {
     index_document = "index.html"
     error_document = "error.html"

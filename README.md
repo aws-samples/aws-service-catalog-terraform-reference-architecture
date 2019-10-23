@@ -41,7 +41,7 @@ The end user has access to this bucket via the AWS Service Catalog GUI or API.
 ## Installation  
 
 Copy the Service Catalog Terraform components to a S3 bucket to be launched from CloudFormation.  
-It is assumed that the user has Administerative privileges in IAM for S3, CloudFormation, EC2, VPC, Lambda, and Service Catalog.
+It is assumed that the user has administrative privileges in IAM for S3, CloudFormation, EC2, VPC, Lambda, and Service Catalog.
 
 There are two methods for copying files to S3 
 - AWS S3 Console
@@ -66,7 +66,7 @@ Leave it open, we will use it in a moment
 
 **Note [YOUR-ACCOUNT-ID]** NO DASHES
 
-1. Sign in to the AWS Console and navigate to the S3 console. https://s3.console.aws.amazon.com/s3/home
+1. Sign in to the AWS Console and navigate to the S3 [console](https://s3.console.aws.amazon.com/s3/home).
 2. Choose the **Create bucket** button. Use the [default settings](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-bucket.html) for creating this bucket.  See step 6 in the [linked instructions](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-bucket.html) concerning default S3 permissions.
 3. Enter scterraform-[YOUR-ACCOUNT-ID] for the **Bucket Name**
 4. Verify the region. 
@@ -76,11 +76,9 @@ Leave it open, we will use it in a moment
 8. On the **Review** page choose  **Create Bucket** 
 9. Choose the **scterraform-[YOUR-ACCOUNT-ID]** 
 10. Choose the **Upload** button
-
 11. Use the file explorer opened earlier to drag over the following folders
-- TerraformScripts
-- TerraformCustomResourceHandler
-
+    - TerraformScripts
+    - TerraformCustomResourceHandler
 12. Choose **Upload**
 
 ---
@@ -88,9 +86,8 @@ Leave it open, we will use it in a moment
  
 - Clone the repository to your local computer
 
-``` 
+```shell
   git clone https://github.com/aws-samples/aws-service-catalog-terraform-reference-architecture.git
-  
 ```
 The **aws-service-catalog-terraform-reference-architecture** folder is created
 
@@ -117,20 +114,22 @@ To view the contents
 
 AWS CLI Install [Instructions](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 
-1.  Create a S3 bucket to host the installation content  
-``` aws s3 mb s3://scterraform-[YOUR-ACCOUNT-ID] ```  
+1.  Create an S3 bucket to host the installation content  
+    ```shell
+    aws s3 mb s3://scterraform-[YOUR-ACCOUNT-ID]
+    ```
 
 2.  Copy the following files to the bucket maintaining the file structure:
-    ```
+    ```shell
      aws s3 sync ./TerraformCustomResourceHandler/bin/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/  
      aws s3 sync ./ServiceCatalogSamples/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformCustomResourceHandler/bin/   
      aws s3 sync ./TerraformScripts/ s3://scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/  
     ```  
 
 
-You now have all the files needed for launch in the S3 Bucket which has the same file structure as this github repo:  
+You now have all the files needed for launch in the S3 Bucket which has the same file structure as this GitHub repo:  
 
-    S3 Bukcet: scterraform-[YOUR-ACCOUNT-ID]  
+    S3 Bucket: scterraform-[YOUR-ACCOUNT-ID]  
     ├── TerraformScripts/  
     │   ├── cloudformation-templates/  
     │   │   ├── terraform-architecture-single-account.yaml  
@@ -149,7 +148,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
  ### Installing the Service Catalog Terraform reference architecture into a single account hub account  
  
-  1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/).In the S3 Console, choose the **TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml** file
+  1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/). In the S3 console, choose the **TerraformScripts/cloudformation-templates/terraform-architecture-single-account.yaml** file
   2. Copy the URL 
   2. Navigate to the CloudFormation [console](https://console.aws.amazon.com/cloudformation/).
   3. Verify the region. 
@@ -158,13 +157,13 @@ You now have all the files needed for launch in the S3 Bucket which has the same
   6. Paste the URL you copied from step 1 above  
   7. Choose **Next**.
   8. For Stack name, type **TerraformArchitecture-SingleAccount**.
-  - **Note for TerraFormVersion enter 0.11.4**
+     - **Note for TerraFormVersion enter 0.11.4**
   9. Leave all the other parameters as defaults.
   10.  Choose **Next**
   11. On the **Configure stack options** page chose **Next**
   12. On the **Review** page
-  - choose the check box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
-  - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** 
+      - choose the check box for **I acknowledge that AWS CloudFormation might create IAM resources with custom names.**
+      - choose the check box for **I acknowledge that AWS CloudFormation might require the following capability: CAPABILITY_AUTO_EXPAND.** 
   14. choose **Create Stack**
   
 
@@ -175,20 +174,20 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 
 ## Create AWS Service Catalog portfolio and product based on Terraform
  
-1. Navigate to the S3 [S3 console](https://console.aws.amazon.com/s3/).
+1. Navigate to the S3 [console](https://console.aws.amazon.com/s3/).
 2. Choose the __**terraform-config-[YOUR-ACCOUNT-ID]**__ bucket
 3. Choose **Upload**
 4. Use the file explorer opened earlier to open the **ServiceCatalogSamples** folder
 5. Select and drag over the following files
-- sc-sample-lamp.json
-- sc-sample-lamp.tf
-- sc-sample-port-product-setup.json
-- sc-sample-S3.json
-- sc-sample-S3.tf
+   - sc-sample-lamp.json
+   - sc-sample-lamp.tf
+   - sc-sample-port-product-setup.json
+   - sc-sample-S3.json
+   - sc-sample-S3.tf
 6. Choose **Upload**
 7. In the S3 Console, choose the **sc-sample-port-product-setup.json** file
 8. Righ click and Copy the URL
-6.  Navigate to the **CloudFormation console** https://console.aws.amazon.com/cloudformation/
+6.  Navigate to the **CloudFormation [console](https://console.aws.amazon.com/cloudformation/)**
 7.  Verify the **region**. 
 8.  Choose **Create Stack**.
 9.  Under Choose a template, select Specify an Amazon S3 template URL.
@@ -207,7 +206,7 @@ You now have all the files needed for launch in the S3 Bucket which has the same
 Service Catalog Console
 ![alt text](documentation/images/portsetup004.png)
 
-### Congratulations, You have completed setting up the Service Catalog Terraform Refrence Archticture components in a single account.
+### Congratulations, you have completed setting up the Service Catalog Terraform Reference Architecture components in a single account.
 
  
 ---
@@ -224,11 +223,11 @@ Service Catalog Console
 **Note:** Make sure the **TerraformArchitecture-SingleAccount** CloudFormation stack has a status of CREATE_COMPLETE before proceeding.   
 
 1.  Sign in to the AWS Console using the spoke account.
-2.  Navigate to the CloudFormation console https://console.aws.amazon.com/cloudformation/
+2.  Navigate to the CloudFormation [console](https://console.aws.amazon.com/cloudformation/).
 3.  Verify the region. 
 4.  Choose Create Stack.
 5.  Under Choose a template, select Specify an Amazon S3 template URL.
-6.  Type the following URL  https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates/terraform-spoke-principals.yaml
+6.  Type the following URL: https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates/terraform-spoke-principals.yaml
 7.  Choose Next.
 8.  For Stack name, type TerraformLaunchRole.
 9.  For Fulfillment Account ID, type the hub account ID.
@@ -243,15 +242,14 @@ The Status changes to CREATE_COMPLETE once the stack is created.
 
 **Note:** Make sure the TerraformLaunchRole CloudFormation stack has a status of CREATE_COMPLETE before proceeding. 
 1.  Sign in to the AWS Console using the spoke account.
-2.   Navigate to the CloudFormation console.
-https://console.aws.amazon.com/cloudformation/
+2.  Navigate to the CloudFormation [console](https://console.aws.amazon.com/cloudformation/).
 3.  Verify the region. 
 4.  Choose **Create Stack.**
 5.  Under Choose a template, select Specify an Amazon S3 template URL.
-6.  Type the following URL:https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml
+6.  Type the following URL: https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates/terraform-launch-lambda.yaml
 7.  Choose **Next**
 8.  For **Stack name,** type **TerraformLaunchLambda.** 
-9.  For **Fulfillment Account** ID** type the hub account ID.
+9.  For **Fulfillment Account ID** type the hub account ID.
 10. For **FulfillmentRegion**  enter the region
 11. Update the remaining parameters (optional).
 12. Choose **Next.**
@@ -268,30 +266,39 @@ To use the Terraform Reference Architecture with GitHub, follow these steps.
 1.  Create a MachineUser with access to the repositories you would like to reference: https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users  
 
 2.  Create a secret in your hub account that contains your MachineUser's private key. For example:  
-    ```
+    ```shell
     aws secretsmanager create-secret --secret-string "`cat id_rsa`" --name TerraformMachineUserIdentity
     ```  
     For more information, see https://docs.aws.amazon.com/secretsmanager/latest/userguide/manage_create-basic-secret.html  
 
 3.  Generate a hashed known_hosts file containing the public keys of your repository's host:  
-    a.  Retrieve Github's public key using the following commands:  
-    ```
+    a.  Retrieve GitHub's public key using the following commands:  
+    ```shell
     touch known_hosts
     chmod 600 known_hosts
     ssh-keyscan -t rsa github.com >> known_hosts
     ```
-    b.  Verify the public key against Github's public key fingerprints using the following command:  
-    ```cat known_hosts | ssh-keygen -lf -```  
-    c.  Compare the output to the public key fingerprints Github has posted: https://help.github.com/articles/github-s-ssh-key-fingerprints/  
+    b.  Verify the public key against GitHub's public key fingerprints using the following command:  
+    ```shell
+    cat known_hosts | ssh-keygen -lf -
+    ```
+    c.  Compare the output to the public key fingerprints GitHub has posted: https://help.github.com/articles/github-s-ssh-key-fingerprints/  
     d.  Generate a hashed known_hosts file using the public key:  
-    ```ssh-keygen -H -f known_hosts```  
+    ```shell
+    ssh-keygen -H -f known_hosts
+    ```
 
 4.  Create a secret in your hub account that contains the hashed known_hosts file. For example:  
-  ```aws secretsmanager create-secret --secret-string "`cat known_hosts`" --name TerraformKnownHosts```  
+    ```shell
+    aws secretsmanager create-secret --secret-string "`cat known_hosts`" --name TerraformKnownHosts
+    ```
 
 5.  Update the SshIdentitySecret and SshKnownHostsSecret parameters of your TerraformWrapperServer stack. For example:  
-    ```
-    aws cloudformation update-stack --template-url https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates//terraform-fulfillment-server.yaml --parameters ParameterKey=SshKnownHostsSecret,ParameterValue=TerraformKnownHosts ParameterKey=SshIdentitySecret,ParameterValue=TerraformMachineUserIdentity --capabilities CAPABILITY_NAMED_IAM --stack-name TerraformWrapperServer
+    ```shell
+    aws cloudformation update-stack \
+    --template-url https://s3.amazonaws.com/scterraform-[YOUR-ACCOUNT-ID]/TerraformScripts/cloudformation-templates//terraform-fulfillment-server.yaml \
+    --parameters ParameterKey=SshKnownHostsSecret,ParameterValue=TerraformKnownHosts ParameterKey=SshIdentitySecret,ParameterValue=TerraformMachineUserIdentity \
+    --capabilities CAPABILITY_NAMED_IAM --stack-name TerraformWrapperServer
     ```
 
 
@@ -318,8 +325,8 @@ The following code is the resource section from the sc-sample-lamp.json CloudFor
                           "aws_ami": {
                               "Ref": "ImageID"
        
-- * This URL points to the Terraform file
-- ** This role requires permission to create the AWS resources. For example, if the Terraform files will create an EC2 instance, then this role must have the permission to create EC2 instances.
+- `*` This URL points to the Terraform file
+- `**` This role requires permission to create the AWS resources. For example, if the Terraform files will create an EC2 instance, then this role must have the permission to create EC2 instances.
 
 
 ---
@@ -339,7 +346,7 @@ The Terraform plan command creates an execution plan or determines actions that 
                     "LaunchRoleArn": {
                         "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole" 
                     },
-                    "DryRunId": {“Ref”:“DryRunId”},  *
+                    "DryRunId": { "Ref": "DryRunId" },  *
 
                     "TerraformVariables": {
                         "aws_region": {
@@ -348,7 +355,7 @@ The Terraform plan command creates an execution plan or determines actions that 
                         "aws_ami": {
                             "Ref": "ImageID"
 
- - * Add this property for Plan or Dry run.
+ - `*` Add this property for Plan or Dry run.
 
 ---
 

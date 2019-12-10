@@ -41,11 +41,6 @@ Parameters:
     ConstraintDescription: 'must be a valid IP CIDR range of the form x.x.x.x/x.'
     Description : (Optional) The IP address range that can be used to SSH to the
                   TerraformWrapperServer
-  ConfigBucketName:
-    Type: String
-    Default: ""
-    Description: (Optional) The name of bucket used to store Terraform configurations. The default
-                 name is "terraform-config-<AccountId>""
   BucketEncryptionKeyId:
     Type: String
     Default: ""
@@ -53,9 +48,8 @@ Parameters:
                  Terraform-related S3 buckets. By default an S3 managed key is used.
   TerraformVersion:
     Type: String
-    Default: ""
-    Description: (Optional) The version of the terraform binary to use (ex. 0.11.3). By default,
-                 the latest version will be used.
+    Default: "0.12.17"
+    Description: The version of the terraform binary to use.
   WrapperScriptBucket:
     Type: String
     Default: ""
@@ -121,8 +115,12 @@ Rules:
       - Assert: !Equals [!Ref Subnet, !Ref Vpc]
         AssertDescription: The Subnet parameter is empty if and only if the Vpc parameter is empty
 
+Mappings: 
+    Versions:
+        wrapperwhl: 
+            latest: sc_terraform_wrapper-1.3-py3-none-any.whl
+
 Conditions:
-  UseDefaultConfigBucketName: !Equals [!Ref ConfigBucketName, ""]
   EnableSshAccess: !Not [!Equals [!Ref SshAccessKeyName, ""]]
   CreateDedicatedInstance: !Equals [!Ref UseDedicatedInstance, "true"]
   CreateVpc: !Equals [!Ref Vpc, ""]
@@ -250,10 +248,6 @@ Resources:
     # Bucket for storing Terraform configurations
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !If
-        - UseDefaultConfigBucketName
-        - !Sub "terraform-config-${AWS::AccountId}"
-        - !Ref ConfigBucketName
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -459,10 +453,7 @@ Resources:
           TERRAFORM_SERVER_TAG_VALUE: terraform-server-tag-value
           COMMAND_OUTPUT_S3_BUCKET: !Ref OutputStore
           TERRAFORM_SSM_COMMAND_BUCKET: !Ref SsmCommandStore
-          WHITELISTED_TERRAFORM_ARTIFACT_BUCKET: !If
-            - UseDefaultConfigBucketName
-            - !Sub "terraform-config-${AWS::AccountId}"
-            - !Ref ConfigBucketName
+          WHITELISTED_TERRAFORM_ARTIFACT_BUCKET: !Ref TerraformConfigStore
       FunctionName: TerraformCommandHandler
       Handler: com.amazon.servicecatalog.terraform.customresource.TerraformRequestHandler
       MemorySize: 512
@@ -732,17 +723,23 @@ Resources:
             01_download_terraform_wrapper:
               command: !If
                 - UseDefaultWrapperScript
-                - !Sub 'aws s3 cp s3://scterraform-${AWS::AccountId}/TerraformScripts/bin/sc_terraform_wrapper-1.2-py3-none-any.whl /tmp/sc_terraform_wrapper-1.2-py3-none-any.whl'
+                - !Sub 
+                    - 'aws s3 cp s3://scterraform-${AWS::AccountId}/TerraformScripts/bin/${wrapperwhl} /tmp/${wrapperwhl}'
+                    - wrapperwhl: !FindInMap [ Versions, wrapperwhl, latest ] 
                 - !Sub 'aws s3 cp s3://${WrapperScriptBucket}/${WrapperScriptKey} /tmp/${WrapperScriptKey}'
             02_install_terraform_wrapper:
               command: !If
                 - UseDefaultWrapperScript
-                - 'pip3 install --upgrade /tmp/sc_terraform_wrapper-1.2-py3-none-any.whl'
+                - !Sub 
+                    - 'pip3 install --upgrade /tmp/${wrapperwhl}'
+                    - wrapperwhl: !FindInMap [ Versions, wrapperwhl, latest ] 
                 - !Sub 'pip3 install --upgrade /tmp/${WrapperScriptKey}'
             03_cleanup:
               command: !If
                 - UseDefaultWrapperScript
-                - 'rm /tmp/sc_terraform_wrapper-1.2-py3-none-any.whl'
+                - !Sub 
+                    - 'rm /tmp/${wrapperwhl}'
+                    - wrapperwhl: !FindInMap [ Versions, wrapperwhl, latest ] 
                 - !Sub 'rm /tmp/${WrapperScriptKey}'
             04_install_terraform:
               command: !Sub '/usr/local/bin/install-terraform ${TerraformVersion}'
@@ -805,3 +802,8 @@ Outputs:
   TerraformLambdaSnsTopic:
     Description: 'TerraformLambdaSnsTopic Topic ARN'
     Value: !Ref TerraformLambdaSnsTopic
+  TerraformConfigBucket:
+    Description: Bucket which holds terraform plans and cloudformation wrappers
+    Value: !GetAtt TerraformConfigStore.RegionalDomainName
+    Export: 
+        Name: TerraformConfigBucket

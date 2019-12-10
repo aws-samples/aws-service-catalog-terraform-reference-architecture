@@ -83,7 +83,9 @@
             "Description": "Lamp TF V1",
             "Info": {
               "LoadTemplateFromURL": {
-                "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-lamp.json"
+                "Fn::Sub": ["https://${configurl}/sc-sample-lamp.json",
+                {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
+                ]
               }
             },
             "Name": "V1"
@@ -107,7 +109,9 @@
             "Description": "S3 WebSite-TF",
             "Info": {
               "LoadTemplateFromURL": {
-                "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-S3.json"
+                "Fn::Sub": ["https://${configurl}/sc-sample-S3.json",
+                {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
+                ]
               }
             },
             "Name": "V1"

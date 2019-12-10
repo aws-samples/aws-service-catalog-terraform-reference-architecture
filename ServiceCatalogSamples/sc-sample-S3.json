@@ -1,15 +1,10 @@
 {
     "Parameters": {
-
         "BucketName": {
             "Type": "String",
             "Description":"Bucket Name",
             "Default":"bucketname"
-            
         } 
-         
-
-
     },
     "Resources": {
         "MyTerraformStack": {
@@ -19,7 +14,9 @@
                     "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:TerraformLaunchHandler"
                 },
                 "TerraformArtifactUrl": {
-                    "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-S3.tf"
+                    "Fn::Sub": ["https://${configurl}/sc-sample-S3.tf",
+                        {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
+                    ]
                 },
                 "LaunchRoleArn": {
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole"

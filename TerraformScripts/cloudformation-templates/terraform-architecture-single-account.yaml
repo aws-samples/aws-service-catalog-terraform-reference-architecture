@@ -47,11 +47,6 @@ Parameters:
     ConstraintDescription: 'must be a valid IP CIDR range of the form x.x.x.x/x.'
     Description : (Optional) The IP address range that can be used to SSH to the
                   TerraformWrapperServer
-  ConfigBucketName:
-    Type: String
-    Default: ""
-    Description: (Optional) The name of bucket used to store Terraform configurations. The default
-                 name is "terraform-config-<AccountId>""
   BucketEncryptionKeyId:
     Type: String
     Default: ""
@@ -59,9 +54,8 @@ Parameters:
                  Terraform-related S3 buckets. By default an S3 managed key is used.
   TerraformVersion:
     Type: String
-    Default: ""
-    Description: (Optional) The version of the terraform binary to use (ex. 0.11.3). By default,
-                 the latest version will be used.
+    Default: "0.12.17"
+    Description: The version of the terraform binary to use (ex. 0.12.17).
   WrapperScriptBucket:
     Type: String
     Default: ""
@@ -152,7 +146,6 @@ Resources:
         UseDedicatedInstance: !Ref UseDedicatedInstance
         SshAccessKeyName: !Ref SshAccessKeyName
         SshInboundIpRange: !Ref SshInboundIpRange
-        ConfigBucketName: !Ref ConfigBucketName
         BucketEncryptionKeyId: !Ref BucketEncryptionKeyId
         TerraformVersion: !Ref TerraformVersion
         WrapperScriptBucket: !Ref WrapperScriptBucket

@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name="sc_terraform_wrapper",
-    version="1.2",
+    version="1.3",
     description="Python module to download and apply Terraform configurations",
     license="Apache License 2.0",
     install_requires=[

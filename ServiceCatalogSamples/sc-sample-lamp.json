@@ -1,6 +1,5 @@
 {
     "Parameters": {
-
         "ImageID": {
             "Type": "String",
             "Description":"Enter an AMI for your region"
@@ -19,9 +18,6 @@
               "Default":"t2.micro",
               "AllowedValues": ["t2.micro","t2.medium","t2.large","t2.xlarge"]
             } 
-         
-
-
     },
     "Resources": {
         "MyTerraformStack": {
@@ -31,7 +27,9 @@
                     "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:TerraformLaunchHandler"
                 },
                 "TerraformArtifactUrl": {
-                    "Fn::Sub": "https://s3.amazonaws.com/terraform-config-${AWS::AccountId}/sc-sample-lamp.tf"
+                    "Fn::Sub": ["https://${configurl}/sc-sample-lamp.tf",
+                        {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
+                    ]
                 },
                 "LaunchRoleArn": {
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole"

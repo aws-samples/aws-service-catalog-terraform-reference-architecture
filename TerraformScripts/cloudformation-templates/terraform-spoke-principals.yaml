@@ -85,6 +85,7 @@ Resources:
                 - resource-groups:CreateGroup
                 - resource-groups:GetGroup
                 - resource-groups:DeleteGroup
+                - resource-groups:Tag
               Resource: '*'
 
   TerraformLaunchGroup:

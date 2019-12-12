@@ -32,7 +32,16 @@
       "Type": "String",
       "Description": "Portfolio Name",
       "Default": "SC Sample TF Portfolio"
+    },
+    "TemplateConfigBucket": {
+      "Type": "String",
+      "Description": "The url of the S3 bucket which contains the Service Catalog resource templates.  This will default to the exported value from the Fullfillment server template.  For spoke accounts this must be set.",
+      "Default": ""
     }
+  },
+  "Conditions":{
+        "UseDefaultconfigpath" : {"Fn::Equals" : [{"Ref" : "TemplateConfigBucket"}, ""]},
+        "NEGdefaultconfigpath" : {"Fn::Not" : [ {"Fn::Equals" : [{"Ref" : "TemplateConfigBucket"}, ""]} ]}        
   },
   "Resources": {
     "ProdAsssS3": {
@@ -84,11 +93,16 @@
             "Info": {
               "LoadTemplateFromURL": {
                 "Fn::Sub": ["https://${configurl}/sc-sample-lamp.json",
-                {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
-                ]
+                {"configurl": 
+                    { "Fn::If" : [
+                        "UseDefaultconfigpath",
+                        { "Fn::ImportValue" : "TerraformConfigBucket" },
+                        { "Ref" : "TemplateConfigBucket" }
+                    ]}
+                }]
               }
             },
-            "Name": "V1"
+            "Name": "V1.0"
           }
         ]
       }
@@ -110,11 +124,16 @@
             "Info": {
               "LoadTemplateFromURL": {
                 "Fn::Sub": ["https://${configurl}/sc-sample-S3.json",
-                {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
-                ]
+                {"configurl": 
+                    { "Fn::If" : [
+                        "UseDefaultconfigpath",
+                        { "Fn::ImportValue" : "TerraformConfigBucket" },
+                        { "Ref" : "TemplateConfigBucket" }
+                    ]}
+                }]
               }
             },
-            "Name": "V1"
+            "Name": "V1.0"
           }
         ]
       }
@@ -147,6 +166,14 @@
       "Value": {
         "Fn::Sub": "https://console.aws.amazon.com/servicecatalog/home?region=${AWS::Region}#/portfolio/details?portfolioId=${SCsampleport}"
       }
+    },
+    "TerraformConfigBucket" : {
+        "Description": "Bucket which holds terraform plans and cloudformation wrappers",
+        "Condition":"NEGdefaultconfigpath",
+        "Value": {"Ref":"TemplateConfigBucket"},
+        "Export" : { 
+            "Name": "TerraformConfigBucket"
+        }
     }
   }
 }

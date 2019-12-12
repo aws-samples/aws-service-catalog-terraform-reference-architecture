@@ -105,6 +105,9 @@ Parameters:
   ServerLatestAmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  SpokeAccountAccess:
+    Type:'CommaDelimitedList'
+    Description: 'Comma delimited list of spoke AccountIds to grant access to the Templates Bucket and SNS topic.'
 
 Rules:
   SubnetRule:
@@ -138,6 +141,7 @@ Conditions:
     - !Not [!Equals [!Ref SshIdentitySecret, ""]]
     - !Not [!Equals [!Ref SshKnownHostsSecret, ""]]
   UseCustomSecretEncryptionKey: !Not [!Equals [!Ref SshSecretEncryptionKey, ""]]
+  CreateBucketPolicy : !Not [{"Fn::Equals" : [{ "Fn::Select" : [ "0", {"Ref": "SpokeAccountAccess"} ] }, ""]}]
 
 Resources:
   ############

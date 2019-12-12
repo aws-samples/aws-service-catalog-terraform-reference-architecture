@@ -4,8 +4,8 @@
             "Type": "String",
             "Description":"Bucket Name",
             "Default":"bucketname"
-        } 
-    },
+        }
+    },    
     "Resources": {
         "MyTerraformStack": {
             "Type": "Custom::TerraformStack",
@@ -15,8 +15,7 @@
                 },
                 "TerraformArtifactUrl": {
                     "Fn::Sub": ["https://${configurl}/sc-sample-S3.tf",
-                        {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
-                    ]
+                    {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" } }]
                 },
                 "LaunchRoleArn": {
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole"

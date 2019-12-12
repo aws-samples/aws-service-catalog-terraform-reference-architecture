@@ -17,7 +17,7 @@
               "Type": "String",
               "Default":"t2.micro",
               "AllowedValues": ["t2.micro","t2.medium","t2.large","t2.xlarge"]
-            } 
+        }
     },
     "Resources": {
         "MyTerraformStack": {
@@ -28,8 +28,7 @@
                 },
                 "TerraformArtifactUrl": {
                     "Fn::Sub": ["https://${configurl}/sc-sample-lamp.tf",
-                        {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" }} 
-                    ]
+                    {"configurl": { "Fn::ImportValue" : "TerraformConfigBucket" } }]
                 },
                 "LaunchRoleArn": {
                     "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/TerraformResourceCreationRole"

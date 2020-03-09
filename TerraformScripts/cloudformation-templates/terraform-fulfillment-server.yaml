@@ -106,8 +106,9 @@ Parameters:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
   SpokeAccountAccess:
-    Type:'CommaDelimitedList'
+    Type: CommaDelimitedList
     Description: 'Comma delimited list of spoke AccountIds to grant access to the Templates Bucket and SNS topic.'
+    Default: ""
 
 Rules:
   SubnetRule:

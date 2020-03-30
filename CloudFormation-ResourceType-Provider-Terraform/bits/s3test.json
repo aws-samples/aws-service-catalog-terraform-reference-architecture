@@ -1,0 +1,22 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Terraform in CloudFormation example, using the Terraform Connector for CloudFormation",
+    "Resources": {
+        "Terraform12": {
+            "Type": "Cloudsoft::Terraform::Infrastructure",
+            "Properties": {
+                "ConfigurationUrl": "https://kwdem0s.s3.amazonaws.com/cfn/public/cs/bits/s3usw1test.tf"
+            }                        
+        }
+    },
+    "Outputs": {
+        "tfOut": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "Terraform12",
+                    "OutputsStringified"
+                ]
+            }
+        }
+    }
+}

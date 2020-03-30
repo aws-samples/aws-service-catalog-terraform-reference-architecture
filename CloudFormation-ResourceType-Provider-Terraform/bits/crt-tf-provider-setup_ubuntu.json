@@ -1,0 +1,655 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "This CloudFormation template creates the necessary resources or the Cloudsoft::Terraform::Infrastructure to work as expected. For instance, this creates: - a role assumed by CloudFormation during CRUDL operations to ship logs to CloudWatch. - a log group were the log will be ship to. - parameters for the SSH connection to the Terraform server\n",
+  "Parameters": {
+    "SubnetID": {
+      "Type": "AWS::EC2::Subnet::Id",
+      "Description": "Id of an existing subnet ",
+      "ConstraintDescription": "Must be an existing subnet in the selected Virtual Private Cloud."
+    },
+    "SGname": {
+      "Type": "AWS::EC2::SecurityGroup::Id",
+      "Description": "SecurityGroup"
+    },
+    "KeyName": {
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+    },
+    "ParameterStoreSShport": {
+      "Description": "Port of the Terraform Server",
+      "Default": "22",
+      "Type": "String"
+    },
+    "ParameterStoreSSHusername": {
+      "Description": "ssh-username to connect to the Terraform Server",
+      "Type": "String",
+      "Default": "ubuntu"
+    }
+  },
+  "Mappings": {
+    "RegionMap": {
+      "us-east-1": {
+        "HVM64": "ami-04763b3055de4860b"
+      },
+      "us-east-2": {
+        "HVM64": "ami-0d5d9d301c853a04a"
+      },
+      "us-west-1": {
+        "HVM64": "ami-0dd655843c87b6930"
+      },
+      "us-west-2": {
+        "HVM64": "ami-0994c095691a46fb5"
+      },
+      "eu-west-1": {
+        "HVM64": "ami-04b9e92b5572fa0d1"
+      },
+      "ap-northeast-1": {
+        "HVM64": "ami-04b9e92b5572fa0d1"
+      },
+      "ap-southeast-1": {
+        "HVM64": "ami-04b9e92b5572fa0d1"
+      }
+    }
+  },
+  "Resources": {
+    "HoldingBucket": {
+      "Type": "AWS::S3::Bucket"
+    }
+    ,
+    "CopyFromSourceRoleDefine": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Path": "/",
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "lambda-copier",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:s3:::kwdem0s1/*"
+                    }
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:DeleteObject",
+                    "s3:Get*",
+                    "s3:List*"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:s3:::${HoldingBucket}/*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:s3:::${HoldingBucket}"
+                    }
+                  ],
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ],
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CopyFromSourceFunctionDefine": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "import json\nimport logging\nimport threading\nimport boto3\nimport cfnresponse\n\ndef emptydbucket(bucket):\n    s3 = boto3.resource('s3')\n    obucket = s3.Bucket(bucket)\n    _obj =obucket.objects.all()\n    _objects=[]\n    for skey in _obj:\n        skey=str(skey )\n        keya = skey.split(\"key=u'\")\n        _objects.append(keya[1].split(\"'\")[0])\n    return(_objects)\n  \n\ndef getbkutlist(bucket):\n    s3 = boto3.client('s3')\n    bres = s3.list_objects_v2(Bucket=bucket)\n    _cret=[]\n    for _c in bres['Contents']:\n        _cret.append(_c['Key'])\n    return(_cret)\n\ndef copy_objects(source_bucket, dest_bucket, prefix, objects):\n    s3 = boto3.client('s3')\n    for o in objects:\n        key = prefix + o\n        copy_source = {\n            'Bucket': source_bucket,\n            'Key': key\n        }\n        print('copy_source: %s' % copy_source)\n        print('dest_bucket = %s'%dest_bucket)\n        print('key = %s' %key)\n        s3.copy_object(CopySource=copy_source, Bucket=dest_bucket,\n              Key=key)\n\n\ndef delete_objects(bucket, prefix, objects):\n    s3 = boto3.client('s3')\n    objects = {'Objects': [{'Key': prefix + o} for o in objects]}\n    s3.delete_objects(Bucket=bucket, Delete=objects)\n\n\ndef timeout(event, context):\n    logging.error('Execution is about to time out, sending failure response to CloudFormation')\n    cfnresponse.send(event, context, cfnresponse.FAILED, {}, None)\n\n\ndef handler(event, context):\n    # make sure we send a failure to CloudFormation if the function\n    # is going to timeout\n    print(json.dumps(event))\n\n\n    timer = threading.Timer((context.get_remaining_time_in_millis()\n              / 1000.00) - 0.5, timeout, args=[event, context])\n    timer.start()\n\n    print('Received event: %s' % json.dumps(event))\n    status = cfnresponse.SUCCESS\n    try:\n        source_bucket = event['ResourceProperties']['SourceBucket']\n        dest_bucket = event['ResourceProperties']['DestBucket']\n        prefix = event['ResourceProperties']['Prefix']\n        objects = event['ResourceProperties']['Objects']\n        if event['RequestType'] == 'Delete':\n             \n            #objects = emptydbucket(event['ResourceProperties']['DestBucket']) \n            delete_objects(event['ResourceProperties']['DestBucket'], prefix, objects)\n            \n        else:\n            copy_objects(source_bucket, dest_bucket, prefix, objects)\n    except Exception as e:\n        logging.error('Exception: %s' % e, exc_info=True)\n        status = cfnresponse.FAILED\n    finally:\n        timer.cancel()\n        cfnresponse.send(event, context, status, {}, None)\n"
+        },
+        "Description": "Copies objects from a source S3 bucket to a destination",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "CopyFromSourceRoleDefine",
+            "Arn"
+          ]
+        },
+        "Timeout": 240,
+        "Runtime": "python2.7"
+      }
+    },
+    "CopyFromSourceRun": {
+      "Type": "Custom::CopyFromSourceRun",
+      "Properties": {
+        "DestBucket": {
+          "Ref": "HoldingBucket"
+        },
+        "Prefix": "cs/",
+        "Objects": [
+          "cloudsoft-terraform-infrastructure.zip",
+          "terraform-destroy@.service",
+          "terraform-apply@.service",
+          "terraform-init@.service",
+          "l_ctr_reg_provider.zip",
+          "l_ctrsetup.zip"
+        ],
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CopyFromSourceFunctionDefine",
+            "Arn"
+          ]
+        },
+        "SourceBucket": "kwdem0s"
+      }
+    },
+    "CTRLogBucket": {
+      "Type": "AWS::S3::Bucket"
+    },
+    "CRproviderRegRun": {
+      "Type": "Custom::CRprovidderRegRun",
+      "Properties": {
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "ExecutionRole",
+            "Arn"
+          ]
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CRproviderRegFunctionDefine",
+            "Arn"
+          ]
+        },
+        "SchemaHandlerPackage":{
+                      "Fn::Sub":"https://${HoldingBucket}.s3.amazonaws.com/cs/cloudsoft-terraform-infrastructure.zip"},
+        "LogGroupName": {
+          "Ref": "LogGroup"
+        },
+        "LogBucket": {
+          "Ref": "HoldingBucket"
+        },
+        "Terraformhost": {
+          "Fn::GetAtt": [
+            "TerraformServer",
+            "PublicDnsName"
+          ]
+        },
+        "LogRoleArn": {
+          "Fn::GetAtt": [
+            "LoggingRole",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "CRproviderRegFunctionDefine": {
+      "DependsOn":"CopyFromSourceRun",
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+         "Code": {
+          "S3Bucket": {
+            "Ref": "HoldingBucket"
+          },
+          "S3Key": {
+            "Fn::Sub": "cs/l_ctrsetup.zip"
+          }
+        },
+        "Description": " Register a CR provider",
+        "Handler": "lambda_function.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "CRproviderRegRoleDefine",
+            "Arn"
+          ]
+        },
+        "Timeout": 300,
+        "Runtime": "python3.7"
+      }
+    },
+    "CRproviderRegRoleDefine": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "regpol",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:DeleteObject",
+                    "s3:Get*",
+                    "s3:List*"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:s3:::${CTRLogBucket}/*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:s3:::${HoldingBucket}/*"
+                    }
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
+                    }
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "cloudformation:*",
+                    "servicecatalog:*",
+                    "ses:*"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ],
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Action": [
+                "sts:AssumeRole"
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "CRTFEC2Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2008-10-17",
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "ec2regpol",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "*",
+                  "Resource": "*"
+                },
+                {
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*"
+                    }
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:DeleteObject",
+                    "s3:Get*",
+                    "s3:List*"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:s3:::${CTRLogBucket}/*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:s3:::${CTRLogBucket}"
+                    }
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Action": [
+                    "cloudformation:*",
+                    "servicecatalog:*",
+                    "ses:*"
+                  ],
+                  "Resource": "*",
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "CRTFEC2InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "CRTFEC2Role"
+          }
+        ]
+      }
+    },
+    "TerraformServer": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "IamInstanceProfile": {
+          "Ref": "CRTFEC2InstanceProfile"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CTR-tf-provider"
+          }
+        ],
+        "ImageId": {
+          "Fn::FindInMap": [
+            "RegionMap",
+            {
+              "Ref": "AWS::Region"
+            },
+            "HVM64"
+          ]
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "InstanceType": "t2.2xlarge",
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": "0",
+            "GroupSet": [
+              {
+                "Ref": "SGname"
+              }
+            ],
+            "SubnetId": {
+              "Ref": "SubnetID"
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash\n",
+                "sudo apt update && sudo apt upgrade\n",
+                "sudo apt install -y unzip\n",
+                "sudo apt install -y python3-pip\n",
+                "sudo pip3 install --upgrade pip\n",
+                "curl 'https://s3.amazonaws.com/aws-cli/awscli-bundle.zip' -o 'awscli.zip'\n",
+                "unzip awscli.zip\n",
+                "sudo ln -s /usr/bin/python3 /usr/bin/python\n",
+                "sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws\n",
+                "wget https://releases.hashicorp.com/terraform/0.12.16/terraform_0.12.16_linux_amd64.zip\n",
+                "unzip terraform_0.12.16_linux_amd64.zip\n",
+                "sudo mv terraform /usr/local/bin/\n"
+   
+              ]
+            ]
+          }
+        }
+      }
+    },
+    "ExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "MaxSessionDuration": 8400,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "resources.cloudformation.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "ResourceTypePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "ssm:GetParameter"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LoggingRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudformation.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "LogAndMetricsDeliveryRolePolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams",
+                    "logs:PutLogEvents",
+                    "cloudwatch:ListMetrics",
+                    "cloudwatch:PutMetricData"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "LogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "cloudsoft-terraform-infrastructure-logs",
+              {
+                "Fn::Select": [
+                  1,
+                  {
+                    "Fn::Split": [
+                      "-",
+                      {
+                        "Fn::Select": [
+                          2,
+                          {
+                            "Fn::Split": [
+                              "/",
+                              {
+                                "Ref": "AWS::StackId"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          ]
+        },
+        "RetentionInDays": 7
+      }
+    },
+    "TerraformSSHHostParameter": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Description": "Terraform server host to connect to for SSH connections",
+        "Name": "/cfn/terraform/ssh-host",
+        "Type": "String",
+        "Value": {
+          "Fn::GetAtt": [
+            "TerraformServer",
+            "PublicDnsName"
+          ]
+        }
+      }
+    },
+    "TerraformSSHPortParameter": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Description": "Terraform server port to connect to for SSH connections",
+        "Name": "/cfn/terraform/ssh-port",
+        "Type": "String",
+        "Value": {
+          "Ref": "ParameterStoreSShport"
+        }
+      }
+    },
+    "TerraformSSHUsernameParameter": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Description": "Username of the Terraform server host for SSH connections",
+        "Name": "/cfn/terraform/ssh-username",
+        "Type": "String",
+        "Value": {
+          "Ref": "ParameterStoreSSHusername"
+        }
+      }
+    },
+    "TerraformSSHKeyParameter": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Description": "Private SSH key of the CloudFormation client for SSH connections",
+        "Name": "/cfn/terraform/ssh-key",
+        "Type": "String",
+        "Value": "(FIXME)"
+      }
+    },
+    "TerraformSSHFingerprintParameter": {
+      "Type": "AWS::SSM::Parameter",
+      "Properties": {
+        "Description": "Public SSH key fingerprint of the Terraform server to verify SSH connections",
+        "Name": "/cfn/terraform/ssh-fingerprint",
+        "Type": "String",
+        "Value": "(FIXME)"
+      }
+    }
+  },
+  "Outputs": {
+     "SetupScript": {
+      "Description": "aws s3 cp + url",
+      "Value": {
+        "Fn::GetAtt": [
+          "CRproviderRegRun",
+          "s00setupss3loc"
+        ]
+      }
+    },
+    "SystemsManager": {
+      "Description": "Systems Manager parameters- use to save private key",
+      "Value": {
+        "Fn::Sub": "https://console.aws.amazon.com/systems-manager/parameters?region=${AWS::Region}"
+      }
+    },
+  
+    "PublicDNSName": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TerraformServer",
+          "PublicDnsName"
+        ]
+      },
+      "Description": "DNS Name of the newly created TerraformServer"
+    },
+    "LoggingRoleArn": {
+      "Value": {
+        "Fn::GetAtt": "LoggingRole.Arn"
+      }
+    },
+    "LogGroup": {
+      "Value": {
+        "Ref": "LogGroup"
+      }
+    },
+    
+    "ExecutionRoleArn": {
+      "Value": {
+        "Fn::GetAtt": "ExecutionRole.Arn"
+      }
+    }
+  }
+}

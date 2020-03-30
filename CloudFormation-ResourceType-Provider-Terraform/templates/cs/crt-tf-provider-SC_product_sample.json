@@ -1,0 +1,61 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "AWS SC CloudFormationProduct customresource",
+  "Resources": {
+    "ProdAssBucket": {
+      "Type": "AWS::ServiceCatalog::PortfolioProductAssociation",
+      "DependsOn": [
+        "awsportfolio",
+        "Bucket"
+      ],
+      "Properties": {
+        "AcceptLanguage": "en",
+        "PortfolioId": {
+          "Ref": "awsportfolio"
+        },
+        "ProductId": {
+          "Ref": "Bucket"
+        }
+      }
+    },
+    "Bucket": {
+      "Type": "AWS::ServiceCatalog::CloudFormationProduct",
+      "Properties": {
+        "Owner": "MP Team",
+        "SupportDescription": "Support Description",
+        "Description": "S3TFBucket",
+        "Distributor": "AWS MP Team",
+        "SupportEmail": "awsmp@example.com",
+        "AcceptLanguage": "en",
+        "SupportUrl": "https://support.com",
+        "Name": "Bucket",
+        "ProvisioningArtifactParameters": [
+          {
+            "Description": "v1.0",
+            "Info": {
+              "LoadTemplateFromURL": "https://s3.amazonaws.com/kenwalshtestad/cfn/public/samples/SimpleEC2.json"
+            },
+            "Name": "v1.0"
+          }
+        ]
+      }
+    },
+    "awsportfolio": {
+      "Type": "AWS::ServiceCatalog::Portfolio",
+      "Properties": {
+        "ProviderName": "AWS MP",
+        "Description": "AWS MP Sample Portfolio",
+        "DisplayName": "CloudFormationCustom",
+        "AcceptLanguage": "en"
+      }
+    }
+  },
+  "Outputs": {
+    "SampleSCPortfollio": {
+      "Description": "Sample Service Catalog Portfolo",
+      "Value": {
+        "Fn::Sub": "https://${AWS::Region}.console.aws.amazon.com/servicecatalog/home?isSceuc=false&region=${AWS::Region}#portfolios/${awsportfolio}?"
+      }
+    }
+  }
+}

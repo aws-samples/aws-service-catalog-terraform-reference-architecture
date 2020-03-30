@@ -1,0 +1,43 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Terraform in CloudFormation S3 example",
+  "Parameters": {
+    "BucketNamePrefix": {
+      "Type": "String",
+      "Description": "Bucket name prefix",
+      "Default": "cft123"
+    }
+  },
+  "Resources": {
+    "Terraformsample": {
+      "Type": "Cloudsoft::Terraform::Infrastructure",
+      "Properties": {
+        "ConfigurationUrl":"changeme",
+        "Variables": {
+          "aws_region": {
+            "Ref": "AWS::Region"
+          },
+          "bucket_name": {"Ref":"BucketNamePrefix"}
+        }
+      }
+    }
+  },
+  "Outputs": {
+        "LogBucketUrl": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Terraformsample",
+          "LogBucketUrl"
+        ]
+      }
+    },
+    "tfOut": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Terraformsample",
+          "OutputsStringified"
+        ]
+      }
+    }
+  }
+}

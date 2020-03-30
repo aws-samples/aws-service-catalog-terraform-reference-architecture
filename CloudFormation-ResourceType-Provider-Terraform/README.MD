@@ -1,4 +1,4 @@
-# CloudFormation Custom Resource type for Terraform
+# CloudFormation Resource Type Provider for Terraform
 
 ## Solution Overview
 

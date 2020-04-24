@@ -2,6 +2,8 @@
 
 ## Solution Overview
 
+![Video Overview](documentation/images/tfvideolink.png)
+
 **AWS CloudFormation, AWS Service Catalog, and Terraform Terminology**  
 - Terraform account: The account where the Terraform server or engine will live.
 

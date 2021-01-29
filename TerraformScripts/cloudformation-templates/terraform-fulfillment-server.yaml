@@ -45,7 +45,7 @@ Parameters:
     Type: String
     Default: ""
     Description: (Optional) The name of bucket used to store Terraform configurations. The default
-                 name is "terraform-config-<AccountId>""
+                 name is "terraform-config-<AccountId>"
   BucketEncryptionKeyId:
     Type: String
     Default: ""
